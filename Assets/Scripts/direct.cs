@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(playerController2))]
 public class direct : MonoBehaviour
 {
     public ContactFilter2D castFilter;
@@ -10,6 +11,7 @@ public class direct : MonoBehaviour
     public float ceilingDistance = 0.05f;
 
     CapsuleCollider2D touchingCol;
+    playerController2 player;
 
     Animator animator;
 
@@ -60,8 +62,9 @@ public class direct : MonoBehaviour
 
 
 
-    // Relies on flip function
-    private Vector2 wallCheckDirection => gameObject.transform.localScale.x > 0 ? Vector2.right : Vector2.left;
+    // Reads facing directly from playerController2 instead of transform.localScale,
+    // since localScale can be edited/reset independently of isFacingRight and desync.
+    private Vector2 wallCheckDirection => player.isFacingRight ? Vector2.right : Vector2.left;
 
 
 
@@ -70,6 +73,7 @@ public class direct : MonoBehaviour
     {
         touchingCol = GetComponent<CapsuleCollider2D>();
         animator = GetComponent<Animator>();
+        player = GetComponent<playerController2>();
     }
 
     // Update is called once per frame

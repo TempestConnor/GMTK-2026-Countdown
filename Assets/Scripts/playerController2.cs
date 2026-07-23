@@ -4,50 +4,21 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D), typeof(direct))]
 public partial class playerController2 : MonoBehaviour
 {
-    [Header("Walk Settings")]
-    [Space]
+    
 
-    public float walkSpeed = 5f;
-    private bool canwalk = true;
+    public PlayerStats stats;
+
+    public bool canwalk = true;
     Vector2 moveInput;
 
-    [Space]
-    [Header("Jump Settings")]
-    [Space]
-
-    public float jumpImpulse = 11.5f;
-    public float gravityMultiplier = 2f;
-    public float maxFallSpeed = 7f;
     private bool canJump = true;
     [SerializeField] protected float originalGravity;
 
-    [Space]
-    [Header("Wall Jump/Slide Settings")]
-    [Space]
-
-    public float slideSpeed = 2f;
-    public float wallJumpGravity = 1.5f;
-    public float wallJumpBounceDuration = 0.15f;
-    public float wallJumpBounceForce = 5f;
-    public float wallJumpWindow;
     public bool canWallJump;
     Vector2 wallJumpDirection;
 
-    [Space]
-    [Header("Dash Settings")]
-    [Space]
-
-    public float dashSpeed = 14f;
-    public float dashDuration = 1f;
-    public float maxDashSpeed = 14f;
-    public float dashEndSpeed = 0.25f;
     Vector2 dashDirection;
 
-    [Space]
-    [Header("Attack Settings")]
-    [Space]
-
-    public float attackCooldown = 0.55f;
     private bool canAttack = true;
 
 
@@ -62,7 +33,7 @@ public partial class playerController2 : MonoBehaviour
         {
             if (!touchingDirection.isOnWall && canwalk)
             {
-                return walkSpeed;
+                return stats.walkSpeed;
             }
             else
             {
@@ -186,9 +157,9 @@ public partial class playerController2 : MonoBehaviour
         }
 
         // maxDashSpeed implementation
-        if (isDashing && rb.linearVelocity.y > maxDashSpeed)
+        if (isDashing && rb.linearVelocity.y > stats.maxDashSpeed)
         {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Min(rb.linearVelocity.y, maxDashSpeed));
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Min(rb.linearVelocity.y, stats.maxDashSpeed));
             Debug.Log("maxDash triggered");
         }
 
@@ -236,8 +207,8 @@ public partial class playerController2 : MonoBehaviour
         // Increase gravity when falling -- maxFallSpeed
         if (rb.linearVelocity.y < 0 && !isDashing && !touchingDirection.isGrounded)
         {
-            setGravityScale(originalGravity * gravityMultiplier);
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Max(rb.linearVelocity.y, -maxFallSpeed));
+            setGravityScale(originalGravity * stats.gravityMultiplier);
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Max(rb.linearVelocity.y, -stats.maxFallSpeed));
         }
 
         // Reset gravity when grounded

@@ -32,7 +32,7 @@ public partial class playerController2
         canJump = false;
 
         // Determine dash direction and performs the dash
-        rb.linearVelocity = dashDirection.normalized * dashSpeed;
+        rb.linearVelocity = dashDirection.normalized * stats.dashSpeed;
 
         StartCoroutine(stopDashing());
 
@@ -41,10 +41,10 @@ public partial class playerController2
 
     private IEnumerator stopDashing()
     {
-        yield return new WaitForSeconds(dashDuration);
+        yield return new WaitForSeconds(stats.dashDuration);
         isDashing = false;
         setGravityScale(originalGravity);
-        rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y) * dashEndSpeed;
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y) * stats.dashEndSpeed;
         Debug.Log("stopdashing triggered");
         canJump = true;
         canwalk = true;

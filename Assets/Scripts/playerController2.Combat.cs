@@ -16,7 +16,7 @@ public partial class playerController2
 
     private IEnumerator attackTimer()
     {
-        yield return new WaitForSeconds(attackCooldown);
+        yield return new WaitForSeconds(stats.attackCooldown);
         canAttack = true;
     }
 }
