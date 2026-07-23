@@ -1,12 +1,8 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(direct))]
-
-public class playerController2 : MonoBehaviour
+public partial class playerController2 : MonoBehaviour
 {
     [Header("Walk Settings")]
     [Space]
@@ -54,7 +50,7 @@ public class playerController2 : MonoBehaviour
     public float attackCooldown = 0.55f;
     private bool canAttack = true;
 
-    
+
     Rigidbody2D rb;
     direct touchingDirection;
     Animator animator;
@@ -64,24 +60,15 @@ public class playerController2 : MonoBehaviour
     {
         get
         {
-            //if (haltWalk) // Halt walk halts player horizontal speed if attack is made
-            //{
-
-                if ( !touchingDirection.isOnWall && canwalk)
-                {
-                    return walkSpeed;
-                }
-                else
-                {
-                    return 0;
-                }
+            if (!touchingDirection.isOnWall && canwalk)
+            {
+                return walkSpeed;
             }
-            //else
-            //{
-                //return 0;
-            //}
-
-        //}
+            else
+            {
+                return 0;
+            }
+        }
     }
 
     [SerializeField] private bool _isMoving = false;
@@ -152,7 +139,7 @@ public class playerController2 : MonoBehaviour
     }
 
     [SerializeField] private bool _isWallJumping;
-    
+
 
     public bool isWallJumping
     {
@@ -183,14 +170,14 @@ public class playerController2 : MonoBehaviour
     private void FixedUpdate()
     {
         animator.SetFloat("yVelocity", rb.linearVelocity.y);
-      
+
         // Walking code -- turn off when dashing or wall jumping
         if (canwalk)
         {
             rb.linearVelocity = new Vector2(MathF.Round(moveInput.x) * currentMoveSpeed, rb.linearVelocity.y);
         }
-        
-        
+
+
 
         // Enable dash when on the ground
         if (touchingDirection.isGrounded && !isDashing)
@@ -209,7 +196,7 @@ public class playerController2 : MonoBehaviour
         if (touchingDirection.isOnWall && !touchingDirection.isGrounded)
         {
             performWallSlide();
-            
+
             canWallJump = true;
         }
         else if (isSliding && !touchingDirection.isOnWall || touchingDirection.isGrounded)
@@ -233,7 +220,7 @@ public class playerController2 : MonoBehaviour
         // Check for Dash direction
         if (moveInput != Vector2.zero)
         {
-            dashDirection = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+            dashDirection = moveInput;
         }
         else if (isSliding && !isMoving)
         {
@@ -254,171 +241,16 @@ public class playerController2 : MonoBehaviour
         }
 
         // Reset gravity when grounded
-        if (touchingDirection.isGrounded) 
-        { 
+        if (touchingDirection.isGrounded)
+        {
             setGravityScale(originalGravity);
-            
+
 
         }
-    }
-
-
-    // Wait a certain time before disabling wall jumps
-    private IEnumerator wallJumpWait()
-    {
-        yield return new WaitForSeconds(wallJumpWindow);
-        canWallJump = false;
-        Debug.Log("Window has expired");
     }
 
     protected void setGravityScale(float scale)
     {
         rb.gravityScale = scale;
     }
-
-
-    public void onMove(InputAction.CallbackContext context)
-    {
-        moveInput = context.ReadValue<Vector2>();
-
-        isMoving = moveInput != Vector2.zero;
-
-        setFacingDirection(moveInput);
-    }
-    
-    private void setFacingDirection(Vector2 moveInput)
-    {
-        if (moveInput.x > 0 && !isFacingRight)
-        {
-            isFacingRight = true;
-        }
-        else if (moveInput.x < 0 && isFacingRight)
-        {
-            isFacingRight = false;
-        }
-
-
-    }
-
-    public void onJump(InputAction.CallbackContext context)
-    {
-
-        // Need to check if alive
-        if (context.started && canJump && (touchingDirection.isGrounded) ^ context.performed)
-        {
-            animator.SetTrigger("jump");
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpImpulse);
-            Debug.Log("has jumped");
-        }
-
-
-        // Wall Jump Logic
-        if (context.started && canJump && canWallJump ^ context.performed)
-        {
-            StartCoroutine(performWallJump());
-        }
-
-
-        // Holding Jump makes MC jump higher
-        if (context.canceled)
-        {
-            setGravityScale(originalGravity * gravityMultiplier);
-            isWallJumping = false;
-            
-        }
-        
-        
-    }
-
-    private IEnumerator performWallJump()
-    {
-        setGravityScale(originalGravity * wallJumpGravity);
-        
-        isWallJumping = true;
-        
-        canwalk = false;
-
-
-        rb.linearVelocity = new Vector2(wallJumpDirection.x * wallJumpBounceForce, jumpImpulse);
-
-        yield return new WaitForSeconds(wallJumpBounceDuration);
-        canwalk = true;
-
-        Debug.Log("wall jumped");
-    }
-
-    public void onAttack(InputAction.CallbackContext context)
-    {
-        if (context.started && canAttack)
-        {
-            canAttack = false;
-            animator.SetTrigger("attack");
-            StartCoroutine(attackTimer());
-        }
-    }
-
-    private IEnumerator attackTimer()
-    {
-        yield return new WaitForSeconds(attackCooldown);
-        canAttack = true;
-    }
-
-    public void onDash(InputAction.CallbackContext context)
-    {
-        if (context.started && canDash)
-        {
-
-            setGravityScale(0);
-            animator.SetTrigger("dash");
-
-            perFormDash();
-
-            isDashing = true;
-            canDash = false;
-            
-
-
-        }
-    }
-
-    private void perFormDash()
-    {
-        // Set gravity to 0
-        setGravityScale(0);
-
-        // Disable Jumping and walking while dashing
-        canwalk = false;
-        canJump = false;
-
-        // Determine dash direction and performs the dash
-        rb.linearVelocity = dashDirection.normalized * dashSpeed;
-
-        StartCoroutine(stopDashing());
-
-    }
-
-
-    private IEnumerator stopDashing()
-    {
-        yield return new WaitForSeconds(dashDuration);
-        isDashing = false;
-        setGravityScale(originalGravity);
-        rb.linearVelocity = new Vector2(rb.linearVelocity.x, rb.linearVelocity.y) * dashEndSpeed;
-        Debug.Log("stopdashing triggered");
-        canJump = true;
-        canwalk = true;
-    
-    }
-
-    private void performWallSlide()
-    {
-        isSliding = true;
-        if (!isWallJumping)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Clamp(rb.linearVelocity.y, -slideSpeed, float.MaxValue));
-            
-        }
-       
-    }
-
 }
