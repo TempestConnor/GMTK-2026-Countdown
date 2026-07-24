@@ -8,6 +8,12 @@ public enum DoorOrientation
     Vertical
 }
 
+public enum DoorSwitchCondition
+{
+    AllPressed,
+    AllReleased
+}
+
 [RequireComponent(typeof(BoxCollider2D))]
 public class Door : MonoBehaviour
 {
@@ -23,7 +29,10 @@ public class Door : MonoBehaviour
     [SerializeField] private Transform visual;
 
     [Header("Switches")]
-    [Tooltip("Switches that must all be pressed for this door to open.")]
+    [Tooltip("Condition on the switches list that opens this door: AllPressed requires every switch pressed, AllReleased requires every switch not pressed.")]
+    [SerializeField] private DoorSwitchCondition condition = DoorSwitchCondition.AllPressed;
+
+    [Tooltip("Switches this door's open condition depends on.")]
     [SerializeField] private List<Switch> switches = new List<Switch>();
 
     [Header("Events")]
@@ -89,7 +98,7 @@ public class Door : MonoBehaviour
 
     private void UpdateOpenState()
     {
-        bool open = AllSwitchesPressed();
+        bool open = EvaluateCondition();
         if (open == _isOpen) return;
 
         _isOpen = open;
@@ -105,13 +114,16 @@ public class Door : MonoBehaviour
         }
     }
 
-    private bool AllSwitchesPressed()
+    private bool EvaluateCondition()
     {
         if (switches.Count == 0) return false;
 
+        bool requirePressed = condition == DoorSwitchCondition.AllPressed;
+
         foreach (var s in switches)
         {
-            if (s == null || !s.isPressed) return false;
+            if (s == null) return false;
+            if (s.isPressed != requirePressed) return false;
         }
 
         return true;
