@@ -105,7 +105,7 @@ you're repeatedly hand-placing the same edges and it's slowing you down.
    adjacent tiles. If a rule doesn't fire, check its 3×3 pattern against the
    actual neighbor tiles.
 
-## Adding hazards / enemies
+## Adding new entities
 
 1. **Build the prefab.** Create an empty GameObject, add a `SpriteRenderer`
    and a `Collider2D` set to `isTrigger = true`, plus whatever script reacts
@@ -121,5 +121,23 @@ you're repeatedly hand-placing the same edges and it's slowing you down.
 6. Paint in the Scene view. Each click instantiates a real GameObject as a
    child of `Entities`, snapped to the grid, with full Ctrl+Z support.
 
-Repeat steps 1–4 for each new hazard/enemy type — once added to
-`EntityPalette`, it's reusable across every level built from `LevelTemplate`.
+Repeat steps 1–4 for each new entity type — once added to `EntityPalette`,
+it's reusable across every level built from `LevelTemplate`.
+
+### Palette layout convention
+
+Entities in `EntityPalette` are laid out in a single row (`y = 3, z = 0`
+under the `Layer1` grid transform) so each one aligns to the grid and is
+easy to snap-paint:
+
+- Each entity's root transform sits at the **bottom-left corner** of its
+  collider/visual footprint, at a whole-number x position.
+- Entities are placed left-to-right with exactly **one empty column**
+  between the right edge of one entity's footprint and the left edge of
+  the next. Footprint width = the entity's `BoxCollider2D` `m_Size.x`
+  (e.g. `Box` is 2 tiles wide, `Door` is 1 tile wide, `Switch` is 2 tiles
+  wide).
+- Current layout: `Box` spans [-6,-4], gap, `Door` spans [-3,-2], gap,
+  `Switch` spans [-1,1]. The next entity added should start at x=2 (one
+  column after `Switch`'s right edge at x=1), and so on — always start at
+  `(previous entity's right edge + 1)`.
