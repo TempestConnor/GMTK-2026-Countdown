@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: EntityBrush
   m_EditorClassIdentifier: Unity.2D.Tilemap.Extras.Editor::UnityEditor.Tilemaps.GameObjectBrush
   m_Cells:
-  - m_GameObject: {fileID: 0}
+  - m_GameObject: {fileID: 7652137312916788178, guid: 205d23808c66fd34a9ea9afd12081552, type: 3}
     m_Offset: {x: 0, y: 0, z: 0}
     m_Scale: {x: 1, y: 1, z: 1}
     m_Orientation: {x: 0, y: 0, z: 0, w: 1}
@@ -26,4 +26,4 @@ MonoBehaviour:
     cellLayout: 0
     cellSwizzle: 0
   hiddenGrid: {fileID: 0}
-  m_Anchor: {x: 0.5, y: 0.5, z: 0}
+  m_Anchor: {x: 0, y: 0, z: 0}

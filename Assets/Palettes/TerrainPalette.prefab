@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 5293845692146424042}
   - component: {fileID: 7827788777134458375}
   - component: {fileID: 2901869007026030166}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Layer1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -191,7 +191,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3452037494769803931}
   - component: {fileID: 3674225901301976450}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: TerrainPalette
   m_TagString: Untagged
   m_Icon: {fileID: 0}

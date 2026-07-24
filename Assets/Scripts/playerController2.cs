@@ -25,6 +25,7 @@ public partial class playerController2 : MonoBehaviour
     Rigidbody2D rb;
     direct touchingDirection;
     Animator animator;
+    SpriteRenderer spriteRenderer;
 
 
     public float currentMoveSpeed
@@ -76,7 +77,7 @@ public partial class playerController2 : MonoBehaviour
         {
             if (_isFacingRight != value)
             {
-                transform.localScale *= new Vector2(-1, 1);
+                spriteRenderer.flipX = !value;
             }
             _isFacingRight = value;
         }
@@ -131,6 +132,7 @@ public partial class playerController2 : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         touchingDirection = GetComponent<direct>();
         animator = GetComponent<Animator>();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     private void Start()
