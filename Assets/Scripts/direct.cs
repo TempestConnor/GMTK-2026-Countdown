@@ -5,10 +5,15 @@ using UnityEngine;
 [RequireComponent(typeof(playerController2))]
 public class direct : MonoBehaviour
 {
-    public ContactFilter2D castFilter;
+    [SerializeField] private LayerMask groundMaskA;
+    [SerializeField] private LayerMask groundMaskB;
     public float groundDistance = 0.05f;
     public float wallDistance = 0.2f;
     public float ceilingDistance = 0.05f;
+
+    // Not consulting the Physics2D collision matrix, Collider2D.Cast only respects this filter's own mask --
+    // it must be swapped to the active plane's mask or the player would false-detect ground through the plane it isn't on.
+    private ContactFilter2D castFilter;
 
     CapsuleCollider2D touchingCol;
     playerController2 player;
@@ -74,6 +79,15 @@ public class direct : MonoBehaviour
         touchingCol = GetComponent<CapsuleCollider2D>();
         animator = GetComponent<Animator>();
         player = GetComponent<playerController2>();
+
+        castFilter = new ContactFilter2D();
+        castFilter.useTriggers = false;
+        castFilter.SetLayerMask(groundMaskA);
+    }
+
+    public void SetActivePlane(PlaneMember.Plane p)
+    {
+        castFilter.SetLayerMask(p == PlaneMember.Plane.A ? groundMaskA : groundMaskB);
     }
 
     // Update is called once per frame

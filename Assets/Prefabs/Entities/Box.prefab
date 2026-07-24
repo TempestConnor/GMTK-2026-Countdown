@@ -58,7 +58,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: c89049e37f2f26149a7a2d487f0ae8b0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -103,6 +103,7 @@ GameObject:
   - component: {fileID: 6383016537360455343}
   - component: {fileID: 3900593560925174888}
   - component: {fileID: 8343664459256908756}
+  - component: {fileID: 241848594997248109}
   m_Layer: 8
   m_Name: Box
   m_TagString: Untagged
@@ -199,3 +200,22 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2, y: 2}
   m_EdgeRadius: 0
+--- !u!114 &241848594997248109
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5916292814736474954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a71f487a2a3f238418d14f9e028373ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlaneMember
+  currentPlane: 0
+  layerOnA: 8
+  layerOnB: 12
+  targetRenderer: {fileID: 4619912594871944503}
+  onPlaneChanged:
+    m_PersistentCalls:
+      m_Calls: []

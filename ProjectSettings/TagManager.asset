@@ -15,9 +15,9 @@ TagManager:
   - Player
   - Entities
   - Camera
-  - 
-  - 
-  - 
+  - GroundB
+  - PlayerB
+  - EntityB
   - 
   - 
   - 
@@ -46,6 +46,9 @@ TagManager:
     locked: 0
   - name: Player
     uniqueID: 607774863
+    locked: 0
+  - name: GroundB
+    uniqueID: 2506062865
     locked: 0
   m_RenderingLayers:
   - Default

@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 3497396801449740962}
   - component: {fileID: 3229964198797885318}
   - component: {fileID: 1953748423600339148}
+  - component: {fileID: 8149922093257559603}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -181,7 +182,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: c89049e37f2f26149a7a2d487f0ae8b0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -313,20 +314,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fe615311e42177439e19403b638f715, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::direct
-  castFilter:
-    useTriggers: 0
-    useLayerMask: 1
-    useDepth: 0
-    useOutsideDepth: 0
-    useNormalAngle: 0
-    useOutsideNormalAngle: 0
-    layerMask:
-      serializedVersion: 2
-      m_Bits: 320
-    minDepth: 0
-    maxDepth: 0
-    minNormalAngle: 0
-    maxNormalAngle: 0
+  groundMaskA:
+    serializedVersion: 2
+    m_Bits: 320
+  groundMaskB:
+    serializedVersion: 2
+    m_Bits: 5120
   groundDistance: 0.05
   wallDistance: 0.2
   ceilingDistance: 0.05
@@ -345,6 +338,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebed510b90bb55b4ba4858270fe1fb8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::playerController2
+  swapTargetRadius: 2
   stats: {fileID: 11400000, guid: 3f3583a7ddd48a3468fabf05aa9410e0, type: 2}
   canwalk: 1
   originalGravity: 3
@@ -493,3 +487,22 @@ MonoBehaviour:
   m_DefaultActionMap: Player
   m_SplitScreenIndex: 0
   m_Camera: {fileID: 0}
+--- !u!114 &8149922093257559603
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7426272994186676847}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a71f487a2a3f238418d14f9e028373ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlaneMember
+  currentPlane: 0
+  layerOnA: 7
+  layerOnB: 11
+  targetRenderer: {fileID: 1315618476424590749}
+  onPlaneChanged:
+    m_PersistentCalls:
+      m_Calls: []
