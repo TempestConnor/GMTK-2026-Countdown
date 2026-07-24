@@ -11,8 +11,13 @@ using UnityEngine;
 [InitializeOnLoad]
 static class PlaneShiftHotkeys
 {
-    static readonly string[] PlaneALayers = { "Ground", "Player", "Entities" };
-    static readonly string[] PlaneBLayers = { "GroundB", "PlayerB", "EntityB" };
+    static readonly string[] PlaneALayers = { "Ground", "Player", "Entities","Background" };
+    static readonly string[] PlaneBLayers = { "GroundB", "PlayerB", "EntityB","BackgroundB" };
+
+    // Which plane the 1/2 hotkeys last selected. Entities share a single "Entities"
+    // grid target for both planes (unlike Ground/GroundB), so EntityPlaneAutoAssign
+    // reads this to know which plane a freshly painted entity should land on.
+    internal static Banishable.Plane CurrentPlane { get; private set; } = Banishable.Plane.A;
 
     static PlaneShiftHotkeys()
     {
@@ -23,6 +28,7 @@ static class PlaneShiftHotkeys
     [Shortcut("Plane Shift/Show Plane A", KeyCode.Alpha1)]
     static void ShowPlaneA()
     {
+        CurrentPlane = Banishable.Plane.A;
         Tools.visibleLayers = (Tools.visibleLayers | LayerMaskFor(PlaneALayers)) & ~LayerMaskFor(PlaneBLayers);
         SetPaintTargetPlane(planeA: true);
         SceneView.RepaintAll();
@@ -31,9 +37,23 @@ static class PlaneShiftHotkeys
     [Shortcut("Plane Shift/Show Plane B", KeyCode.Alpha2)]
     static void ShowPlaneB()
     {
+        CurrentPlane = Banishable.Plane.B;
         Tools.visibleLayers = (Tools.visibleLayers | LayerMaskFor(PlaneBLayers)) & ~LayerMaskFor(PlaneALayers);
         SetPaintTargetPlane(planeA: false);
         SceneView.RepaintAll();
+    }
+
+    // Maps a Plane A layer to its Plane B counterpart by the project's naming
+    // convention (Ground -> GroundB, Entities -> EntityB, etc). Returns -1 if
+    // layer isn't one of the tracked Plane A layers.
+    internal static int GetPlaneBLayer(int layer)
+    {
+        for (int i = 0; i < PlaneALayers.Length; i++)
+        {
+            if (LayerMask.NameToLayer(PlaneALayers[i]) == layer)
+                return LayerMask.NameToLayer(PlaneBLayers[i]);
+        }
+        return -1;
     }
 
     static int LayerMaskFor(string[] names)
