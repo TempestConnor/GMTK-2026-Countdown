@@ -18,7 +18,7 @@ TagManager:
   - GroundB
   - PlayerB
   - EntityB
-  - 
+  - BanishReticule
   - 
   - 
   - 
@@ -38,6 +38,9 @@ TagManager:
   - 
   - 
   m_SortingLayers:
+  - name: GroundB
+    uniqueID: 2506062865
+    locked: 0
   - name: Default
     uniqueID: 0
     locked: 0
@@ -46,9 +49,6 @@ TagManager:
     locked: 0
   - name: Player
     uniqueID: 607774863
-    locked: 0
-  - name: GroundB
-    uniqueID: 2506062865
     locked: 0
   m_RenderingLayers:
   - Default

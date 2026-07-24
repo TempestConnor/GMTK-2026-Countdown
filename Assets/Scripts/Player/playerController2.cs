@@ -5,7 +5,7 @@ using UnityEngine;
 public partial class playerController2 : MonoBehaviour
 {
     
-
+    [Header("Movement")]
     public PlayerStats stats;
 
     public bool canwalk = true;
@@ -26,6 +26,8 @@ public partial class playerController2 : MonoBehaviour
     direct touchingDirection;
     Animator animator;
     SpriteRenderer spriteRenderer;
+
+    [SerializeField] private PlayerAudio playerAudio;
 
 
     public float currentMoveSpeed

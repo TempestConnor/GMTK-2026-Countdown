@@ -6,7 +6,7 @@ public partial class playerController2
 {
     public void onAttack(InputAction.CallbackContext context)
     {
-        if (context.started && canAttack)
+        if (context.started && canAttack && !isTargeting)
         {
             canAttack = false;
             animator.SetTrigger("attack");

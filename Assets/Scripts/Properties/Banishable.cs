@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 [ExecuteAlways]
-public class PlaneMember : MonoBehaviour
+public class Banishable : MonoBehaviour
 {
     public enum Plane { A, B }
 
@@ -58,9 +58,12 @@ public class PlaneMember : MonoBehaviour
 
     private void Apply()
     {
-        gameObject.layer = currentPlane == Plane.A ? layerOnA : layerOnB;
+        int layer = currentPlane == Plane.A ? layerOnA : layerOnB;
+        gameObject.layer = layer;
 
         if (targetRenderer == null) return;
+
+        targetRenderer.gameObject.layer = layer;
 
         mpb ??= new MaterialPropertyBlock();
         targetRenderer.GetPropertyBlock(mpb);

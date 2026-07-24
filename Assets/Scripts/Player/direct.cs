@@ -85,9 +85,9 @@ public class direct : MonoBehaviour
         castFilter.SetLayerMask(groundMaskA);
     }
 
-    public void SetActivePlane(PlaneMember.Plane p)
+    public void SetActivePlane(Banishable.Plane p)
     {
-        castFilter.SetLayerMask(p == PlaneMember.Plane.A ? groundMaskA : groundMaskB);
+        castFilter.SetLayerMask(p == Banishable.Plane.A ? groundMaskA : groundMaskB);
     }
 
     // Update is called once per frame
