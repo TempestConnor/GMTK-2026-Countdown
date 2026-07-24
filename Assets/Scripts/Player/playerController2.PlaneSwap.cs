@@ -15,8 +15,7 @@ public partial class playerController2
     private Banishable _planeMember;
     private Banishable planeMember => _planeMember != null ? _planeMember : (_planeMember = GetComponent<Banishable>());
 
-    // Right-click held (arming or already armed) -- gates whether left-click fires a
-    // banish instead of a normal attack. See Combat.cs's onAttack guard.
+    // Right-click held (arming or already armed) -- gates whether left-click fires a banish.
     private bool isTargeting;
     private float armElapsed;
     private bool isArmed => banishStats != null && armElapsed >= banishStats.armTime;
@@ -47,23 +46,19 @@ public partial class playerController2
             : (cam.cullingMask | planeBMask) & ~planeAMask;
     }
 
-    // Temporary debug binding -- real swap input/targeting (grab-based?) is not decided yet.
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.gKey.wasPressedThisFrame)
+        if (isTargeting)
         {
-            SwapSelfPlane();
-        }
-
-        if (Mouse.current != null)
-        {
-            HandleBanishInput();
+            UpdateReticule();
         }
 
         if (isBanished)
         {
             UpdateCountdownIndicator();
         }
+
+        UpdatePreview();
     }
 
     private void UpdateCountdownIndicator()
@@ -79,47 +74,36 @@ public partial class playerController2
         countdownIndicator.SetProgress(remainingFraction);
     }
 
-    private void SwapSelfPlane()
-    {
-        if (planeMember == null) return;
 
-        planeMember.TogglePlane();
-        touchingDirection.SetActivePlane(planeMember.CurrentPlane);
-        UpdateCameraVisibility(planeMember.CurrentPlane);
-    }
-
-    // Right-click: hold to arm/show the targeting circle, release to disarm/hide it.
-    // Left-click: fires the armed circle, or -- if a volley is already out -- recalls it early.
-    private void HandleBanishInput()
+    // Aim (right-click): hold to arm/show the targeting circle, release to disarm/hide it.
+    public void onAim(InputAction.CallbackContext context)
     {
-        if (Mouse.current.rightButton.wasPressedThisFrame && !isBanished)
+        if (context.started && !isBanished)
         {
             if (playerAudio != null) playerAudio.PlayBanishArm();
             isTargeting = true;
             armElapsed = 0f;
             if (reticule != null) reticule.Show();
         }
-        else if (Mouse.current.rightButton.wasReleasedThisFrame)
+        else if (context.canceled)
         {
             isTargeting = false;
             if (reticule != null) reticule.Hide();
         }
+    }
 
-        if (Mouse.current.leftButton.wasPressedThisFrame)
+    // Fire (left-click): fires the armed circle, or -- if a volley is already out -- recalls it early.
+    public void onBanishFire(InputAction.CallbackContext context)
+    {
+        if (!context.started) return;
+
+        if (isBanished)
         {
-            if (isBanished)
-            {
-                ReturnBanished();
-            }
-            else if (isTargeting && isArmed)
-            {
-                FireBanish();
-            }
+            ReturnBanished();
         }
-
-        if (isTargeting)
+        else if (isTargeting && isArmed)
         {
-            UpdateReticule();
+            FireBanish();
         }
     }
 

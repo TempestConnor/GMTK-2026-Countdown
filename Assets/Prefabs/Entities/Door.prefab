@@ -95,6 +95,7 @@ MonoBehaviour:
   orientation: 1
   lengthInTiles: 3
   visual: {fileID: 3551596325676092772}
+  condition: 1
   switches:
   - {fileID: 0}
   onOpened:
@@ -162,7 +163,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 94bd510cb629cf345b9869054da8a1e5, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

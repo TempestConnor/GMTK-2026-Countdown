@@ -39,9 +39,4 @@ public class PlayerStats : ScriptableObject
     public float maxDashSpeed = 14f;
     [Tooltip("Multiplier applied to velocity when the dash ends, to control how abruptly momentum is cut.")]
     public float dashEndSpeed = 0.25f;
-
-    [Space]
-    [Header("Attack Settings")]
-    [Tooltip("Minimum time (in seconds) between attacks.")]
-    public float attackCooldown = 0.55f;
 }

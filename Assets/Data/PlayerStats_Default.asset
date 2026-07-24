@@ -25,4 +25,3 @@ MonoBehaviour:
   dashDuration: 0.25
   maxDashSpeed: 14
   dashEndSpeed: 0.25
-  attackCooldown: 0.55

@@ -1,4 +1,4 @@
-Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
+Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
 {
     Properties
     {
@@ -6,8 +6,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
         _MaskTex("Mask", 2D) = "white" {}
         _NormalMap("Normal Map", 2D) = "bump" {}
         [MaterialToggle] _ZWrite("ZWrite", Float) = 0
-        _Saturation("Saturation", Range(0, 1)) = 1
-        [MaterialToggle] _PreviewHideEligible("Hide in Plane Preview (while on Plane A)", Float) = 1
 
         // Legacy properties. They're here so that materials using this shader can gracefully fallback to the legacy sprite shader.
         [HideInInspector] _Color("Tint", Color) = (1,1,1,1)
@@ -16,18 +14,17 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
         [HideInInspector] _EnableExternalAlpha("Enable External Alpha", Float) = 0
     }
 
-    // Plane-A instances of this shader (_Saturation high, i.e. not desaturated to represent Plane B)
-    // go transparent inside the plane-preview circle (hold E), same as Sprite-Lit-PlaneAHide does for
-    // terrain -- so boxes/doors/switches that only exist on Plane A don't visually clutter the reveal.
-    // Objects exempt from this (the player) get _PreviewHideEligible=0 via a MaterialPropertyBlock override.
+    // Plane A geometry using this shader goes transparent inside the plane-preview circle (hold E),
+    // letting Plane B -- which sits behind Plane A in the Sorting Layers list and renders normally,
+    // unmodified -- show through. _PreviewCenter/_PreviewRadius/_PreviewEdgeSoftness are pushed
+    // globally from playerController2.Preview.cs, shared with any material using this shader.
     HLSLINCLUDE
     float3 _PreviewCenter;
     float _PreviewRadius;
     float _PreviewEdgeSoftness;
 
-    half ComputePreviewHideMask(float3 positionWS, half saturation, half hideEligible)
+    half ComputeHideMask(float3 positionWS)
     {
-        if (hideEligible < 0.5 || saturation < 0.5) return 1;
         float dist = length(positionWS.xy - _PreviewCenter.xy);
         return smoothstep(_PreviewRadius - _PreviewEdgeSoftness, _PreviewRadius, dist);
     }
@@ -77,8 +74,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
-                half _Saturation;
-                half _PreviewHideEligible;
             CBUFFER_END
 
             Varyings LitVertex(Attributes input)
@@ -97,9 +92,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
             half4 LitFragment(Varyings input) : SV_Target
             {
                 half4 col = CommonLitFragment(input, input.color);
-                half luminance = dot(col.rgb, half3(0.299, 0.587, 0.114));
-                col.rgb = lerp(half3(luminance, luminance, luminance), col.rgb, _Saturation);
-                col.a *= ComputePreviewHideMask(input.previewPositionWS, _Saturation, _PreviewHideEligible);
+                col.a *= ComputeHideMask(input.previewPositionWS);
                 return col;
             }
             ENDHLSL
@@ -137,7 +130,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START( UnityPerMaterial )
                 half4 _Color;
-                half _Saturation;
             CBUFFER_END
 
             Varyings NormalsRenderingVertex(Attributes input)
@@ -195,8 +187,6 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
-                half _Saturation;
-                half _PreviewHideEligible;
             CBUFFER_END
 
             Varyings UnlitVertex(Attributes input)
@@ -214,9 +204,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
             half4 UnlitFragment(Varyings input) : SV_Target
             {
                 half4 col = CommonUnlitFragment(input, input.color);
-                half luminance = dot(col.rgb, half3(0.299, 0.587, 0.114));
-                col.rgb = lerp(half3(luminance, luminance, luminance), col.rgb, _Saturation);
-                col.a *= ComputePreviewHideMask(input.previewPositionWS, _Saturation, _PreviewHideEligible);
+                col.a *= ComputeHideMask(input.previewPositionWS);
                 return col;
             }
             ENDHLSL

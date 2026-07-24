@@ -15,10 +15,21 @@ using UnityEngine;
 // (and its children) to the active plane -- via Banishable.SetPlane where present
 // (Box), or a direct Plane A -> Plane B layer swap otherwise (Door, Switch) -- without
 // touching the source prefab asset.
+//
+// It also keeps the plane-preview material in sync for entities that don't have a
+// Banishable (Door, Switch, ...): those use plain Sprite-Lit-Default/SpriteLitPlaneAHide
+// rather than the _Saturation-driven PlaneAware shader, so there's no automatic signal
+// tying their appearance to their plane the way Banishable.Apply() provides for the box.
+// Without this, every new static entity prefab would need its material swapped to
+// SpriteLitPlaneAHide by hand to hide correctly in the preview circle -- this makes that
+// happen automatically off the same final layer this script already computes, for both
+// painting directions (Plane A default *and* the Plane B retarget above).
 [InitializeOnLoad]
 static class EntityPlaneAutoAssign
 {
     const string EntityPrefabFolder = "Assets/Prefabs/Entities/";
+    const string PlaneAHideMaterialPath = "Assets/Materials/SpriteLitPlaneAHide.mat";
+    const string PlaneANormalMaterialPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Lit-Default.mat";
 
     static EntityPlaneAutoAssign()
     {
@@ -30,8 +41,7 @@ static class EntityPlaneAutoAssign
         if (EditorApplication.isPlayingOrWillChangePlaymode)
             return;
 
-        if (PlaneShiftHotkeys.CurrentPlane != Banishable.Plane.B)
-            return;
+        bool paintingPlaneB = PlaneShiftHotkeys.CurrentPlane == Banishable.Plane.B;
 
         for (int i = 0; i < stream.length; i++)
         {
@@ -52,7 +62,40 @@ static class EntityPlaneAutoAssign
             if (string.IsNullOrEmpty(assetPath) || !assetPath.StartsWith(EntityPrefabFolder, StringComparison.Ordinal))
                 continue;
 
-            AssignPlaneB(root);
+            if (paintingPlaneB)
+                AssignPlaneB(root);
+
+            SyncPreviewMaterials(root);
+        }
+    }
+
+    // Normalizes any plain (non-PlaneAware) sprite's material to match its final layer --
+    // SpriteLitPlaneAHide on Plane A (Ground/Entities), stock Sprite-Lit-Default on Plane B
+    // (GroundB/EntityB). Only touches renderers already on one of those two materials, so
+    // Banishable's PlaneAware/PlaneAwareGray sprites (and anything else deliberate) are untouched.
+    static void SyncPreviewMaterials(GameObject root)
+    {
+        var hideMat = AssetDatabase.LoadAssetAtPath<Material>(PlaneAHideMaterialPath);
+        var normalMat = AssetDatabase.LoadAssetAtPath<Material>(PlaneANormalMaterialPath);
+        if (hideMat == null || normalMat == null)
+            return;
+
+        int groundLayer = LayerMask.NameToLayer("Ground");
+        int entitiesLayer = LayerMask.NameToLayer("Entities");
+
+        foreach (var sr in root.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            if (sr.sharedMaterial != hideMat && sr.sharedMaterial != normalMat)
+                continue;
+
+            bool isPlaneA = sr.gameObject.layer == groundLayer || sr.gameObject.layer == entitiesLayer;
+            var wanted = isPlaneA ? hideMat : normalMat;
+            if (sr.sharedMaterial == wanted)
+                continue;
+
+            Undo.RecordObject(sr, "Sync Plane Preview Material");
+            sr.sharedMaterial = wanted;
+            EditorUtility.SetDirty(sr);
         }
     }
 

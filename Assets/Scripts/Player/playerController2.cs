@@ -19,8 +19,6 @@ public partial class playerController2 : MonoBehaviour
 
     Vector2 dashDirection;
 
-    private bool canAttack = true;
-
 
     Rigidbody2D rb;
     direct touchingDirection;

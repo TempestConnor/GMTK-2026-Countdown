@@ -729,6 +729,7 @@ MonoBehaviour:
   banishStats: {fileID: 11400000, guid: 196ab82673cafd247979b4ef199151c8, type: 2}
   reticule: {fileID: 1573796816095544331}
   countdownIndicator: {fileID: 3308873364288106839}
+  previewStats: {fileID: 11400000, guid: dba4bf2ab29e7aa4996fc824d1e4f4bb, type: 2}
   stats: {fileID: 11400000, guid: 3f3583a7ddd48a3468fabf05aa9410e0, type: 2}
   canwalk: 1
   originalGravity: 3
@@ -817,7 +818,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 3229964198797885318}
         m_TargetAssemblyTypeName: playerController2, Assembly-CSharp
-        m_MethodName: onAttack
+        m_MethodName: onBanishFire
         m_Mode: 0
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -829,6 +830,22 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 04dc0fcc-743a-4ca8-9fe1-f935b400384a
     m_ActionName: Player/Fire
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 3229964198797885318}
+        m_TargetAssemblyTypeName: playerController2, Assembly-CSharp
+        m_MethodName: onAim
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: aeb5d7f6-1b12-44c2-8849-345302bd356d
+    m_ActionName: Player/Aim
   - m_PersistentCalls:
       m_Calls: []
     m_ActionId: 78b8bd0e-8ccd-4d22-a906-9f8cee59b4f1
@@ -873,6 +890,22 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 732fab1f-f479-4257-8de1-eba26b7f8596
     m_ActionName: UI/TrackedDeviceOrientation
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 3229964198797885318}
+        m_TargetAssemblyTypeName: playerController2, Assembly-CSharp
+        m_MethodName: onPreview
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 6f2a8b3e-9d4c-4a7f-8e1b-2c5d6e7f8a9b
+    m_ActionName: Player/Preview
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
