@@ -73040,6 +73040,50 @@ PolygonCollider2D:
   m_CorrespondingSourceObject: {fileID: 2614893983704670070, guid: b73122876a1c53940957fa6391b8eadb, type: 3}
   m_PrefabInstance: {fileID: 76124358}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1768998262
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1768998264}
+  - component: {fileID: 1768998263}
+  m_Layer: 0
+  m_Name: Level Flow
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1768998263
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1768998262}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 078de8190e7bc934bb1eeb42dd8f097c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelCompletion
+--- !u!4 &1768998264
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1768998262}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!4 &1827367053 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6729924138178393918, guid: 4a635a4710ee01d4aa37a166cac7d550, type: 3}
@@ -73126,3 +73170,4 @@ SceneRoots:
   - {fileID: 332562648}
   - {fileID: 76124358}
   - {fileID: 451706387}
+  - {fileID: 1768998264}

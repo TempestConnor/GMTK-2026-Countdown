@@ -13,6 +13,17 @@ public partial class playerController2 : MonoBehaviour
 
     private bool canJump = true;
     [SerializeField] protected float originalGravity;
+    private bool gravityReversed;
+    private float requestedGravity;
+    public float GravityUpSign => (originalGravity < 0f ? -1f : 1f) * (gravityReversed ? -1f : 1f);
+    public Vector2 GravityDown => Vector2.down * GravityUpSign;
+
+    public void SetGravityReversed(bool reversed)
+    {
+        gravityReversed = reversed;
+        setGravityScale(requestedGravity);
+        touchingDirection.RefreshContacts();
+    }
 
     public bool canWallJump;
     Vector2 wallJumpDirection;
@@ -133,16 +144,15 @@ public partial class playerController2 : MonoBehaviour
         touchingDirection = GetComponent<direct>();
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
+        originalGravity = rb.gravityScale;
+        requestedGravity = originalGravity;
     }
 
-    private void Start()
-    {
-        originalGravity = rb.gravityScale;
-    }
     // Physics update should occur on Fixed update instead
     private void FixedUpdate()
     {
-        animator.SetFloat("yVelocity", rb.linearVelocity.y);
+        touchingDirection.RefreshContacts();
+        animator.SetFloat("yVelocity", rb.linearVelocity.y * GravityUpSign);
 
         // Walking code -- turn off when dashing or wall jumping
         if (canwalk)
@@ -159,9 +169,9 @@ public partial class playerController2 : MonoBehaviour
         }
 
         // maxDashSpeed implementation
-        if (isDashing && rb.linearVelocity.y > stats.maxDashSpeed)
+        if (isDashing && rb.linearVelocity.y * GravityUpSign > stats.maxDashSpeed)
         {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Min(rb.linearVelocity.y, stats.maxDashSpeed));
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, GravityUpSign * Mathf.Min(rb.linearVelocity.y * GravityUpSign, stats.maxDashSpeed));
             Debug.Log("maxDash triggered");
         }
 
@@ -207,14 +217,14 @@ public partial class playerController2 : MonoBehaviour
 
 
         // Increase gravity when falling -- maxFallSpeed
-        if (rb.linearVelocity.y < 0 && !isDashing && !touchingDirection.isGrounded)
+        if (rb.linearVelocity.y * GravityUpSign < 0 && !isDashing && !touchingDirection.isGrounded)
         {
             setGravityScale(originalGravity * stats.gravityMultiplier);
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Max(rb.linearVelocity.y, -stats.maxFallSpeed));
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, GravityUpSign * Mathf.Max(rb.linearVelocity.y * GravityUpSign, -stats.maxFallSpeed));
         }
 
         // Reset gravity when grounded
-        if (touchingDirection.isGrounded)
+        if (touchingDirection.isGrounded && !isDashing)
         {
             setGravityScale(originalGravity);
 
@@ -224,6 +234,7 @@ public partial class playerController2 : MonoBehaviour
 
     protected void setGravityScale(float scale)
     {
-        rb.gravityScale = scale;
+        requestedGravity = scale;
+        rb.gravityScale = scale * (gravityReversed ? -1f : 1f);
     }
 }

@@ -7,23 +7,25 @@ public partial class playerController2
     public void onJump(InputAction.CallbackContext context)
     {
         // Need to check if alive
-        if (context.started && canJump && (touchingDirection.isGrounded) ^ context.performed)
+        touchingDirection.RefreshContacts();
+        if (context.started && canJump && touchingDirection.isGrounded)
         {
             animator.SetTrigger("jump");
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, stats.jumpImpulse);
+            setGravityScale(originalGravity);
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, stats.jumpImpulse * GravityUpSign);
             Debug.Log("has jumped");
         }
 
 
         // Wall Jump Logic
-        if (context.started && canJump && canWallJump ^ context.performed)
+        else if (context.started && canJump && canWallJump)
         {
             StartCoroutine(performWallJump());
         }
 
 
         // Holding Jump makes MC jump higher
-        if (context.canceled)
+        if (context.canceled && !isDashing)
         {
             setGravityScale(originalGravity * stats.gravityMultiplier);
             isWallJumping = false;
@@ -42,7 +44,7 @@ public partial class playerController2
         canwalk = false;
 
 
-        rb.linearVelocity = new Vector2(wallJumpDirection.x * stats.wallJumpBounceForce, stats.jumpImpulse);
+        rb.linearVelocity = new Vector2(wallJumpDirection.x * stats.wallJumpBounceForce, stats.jumpImpulse * GravityUpSign);
 
         yield return new WaitForSeconds(stats.wallJumpBounceDuration);
         canwalk = true;
@@ -55,7 +57,7 @@ public partial class playerController2
         isSliding = true;
         if (!isWallJumping)
         {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Clamp(rb.linearVelocity.y, -stats.slideSpeed, float.MaxValue));
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, GravityUpSign * Mathf.Max(rb.linearVelocity.y * GravityUpSign, -stats.slideSpeed));
 
         }
 

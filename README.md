@@ -1,5 +1,39 @@
 # Level Design Tooling
 
+## Main menu, player profile, and level progression
+
+Open `Assets/Scenes/MainMenu.unity` and press Play to use the menu. It is the
+first build scene. Play/Continue loads the first unfinished level; Level Select
+shows available, completed, and locked levels. Player Profile lets the player
+change their name or reset completion after confirmation. One local profile is
+saved as `player-profile.json` in `Application.persistentDataPath`, with a backup
+of the previous save. Completion saves immediately; the loader tries the backup
+if the main file is invalid. This is a single local profile, not an online account.
+
+Select `Assets/Resources/LevelCatalog.asset` to customize level order. Drag list
+entries into the desired order. Use **Add level scene** to select a scene and
+generate a stable ID, then edit its display title. Click **Include catalog scenes
+in build** after adding levels. The catalog order controls progression independently
+of build order. Do not change an existing level's ID after shipping: saves track
+IDs, so renaming a title or reordering entries preserves completion. If a scene
+moves, update its Scene Path. The build validator rejects duplicate IDs/scenes,
+empty titles, and scenes missing from the enabled build list.
+
+The first level is always available. An unfinished level unlocks when all earlier
+catalog entries are completed. Previously completed levels remain replayable
+after reordering. Only `Level_01` is configured initially; add real level scenes
+to expand the campaign.
+
+`Level_01` has a **Level Flow** object with `LevelCompletion`. Connect your win
+condition's UnityEvent to **Level Flow > LevelCompletion.CompleteLevel**, or call
+that method from your win logic. It saves completion and returns to the menu,
+where Continue selects the next unfinished level. The project does not yet have
+a win condition, so no gameplay action is wired to completion automatically.
+For each new level, add a scene-level object with `LevelCompletion` and wire its
+win condition. Escape returns to the menu without awarding completion. You can
+also wire `ReturnToMenu()` to a UI button. This is scene infrastructure and does
+not need an entity palette entry.
+
 This project uses Unity's Tilemap system for terrain and the `GameObjectBrush`
 (2D Tilemap Extras) for placing enemies, hazards, and other entities — both
 painted the same way, from the Tile Palette window.
@@ -138,6 +172,25 @@ easy to snap-paint:
   (e.g. `Box` is 2 tiles wide, `Door` is 1 tile wide, `Switch` is 2 tiles
   wide).
 - Current layout: `Box` spans [-6,-4], gap, `Door` spans [-3,-2], gap,
-  `Switch` spans [-1,1]. The next entity added should start at x=2 (one
-  column after `Switch`'s right edge at x=1), and so on — always start at
+  `Switch` spans [-1,1], gap, `GravityReversalArea` spans [2,6]. The next
+  entity added should start at x=7, and so on — always start at
   `(previous entity's right edge + 1)`.
+
+### Gravity reversal area
+
+Paint `GravityReversalArea` from `EntityPalette` with `EntityBrush` onto the
+level's `Entities` child. Its palette entry starts at `(2, 3, 0)` and spans
+four columns; the next free entry starts at x=7.
+
+Set **Area Size** on `GravityReversalArea` to define its rectangular width and
+height in grid units (default 4x4). The trigger and translucent cyan visual
+resize together, keeping the root at the bottom-left corner. **Affected Layers**
+limits which dynamic Rigidbody2D objects it affects; the physics layer collision
+matrix also applies, including the project's plane separation.
+
+Gravity reverses while any solid collider belonging to a body overlaps an area
+and restores after leaving all areas or disabling them. Overlapping areas do not
+cancel one another. Zero-gravity bodies remain at zero. The player checks for
+ground in the gravity direction and jumps away from it, including ceiling jumps;
+fall speed and wall slides also follow that direction. Dash input remains in
+world directions. This assumes the project's vertical, downward global gravity.

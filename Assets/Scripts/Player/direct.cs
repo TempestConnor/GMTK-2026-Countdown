@@ -93,8 +93,14 @@ public class direct : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        isGrounded = touchingCol.Cast(Vector2.down, castFilter, groundHits, groundDistance) > 0;
+        RefreshContacts();
+    }
+
+    public void RefreshContacts()
+    {
+        if (touchingCol == null || player == null) return;
+        isGrounded = touchingCol.Cast(player.GravityDown, castFilter, groundHits, groundDistance) > 0;
         isOnWall = touchingCol.Cast(wallCheckDirection, castFilter, wallHits, wallDistance) > 0;
-        isOnCeiling = touchingCol.Cast(Vector2.up, castFilter, ceilingHits, ceilingDistance) > 0;
+        isOnCeiling = touchingCol.Cast(-player.GravityDown, castFilter, ceilingHits, ceilingDistance) > 0;
     }
 }
