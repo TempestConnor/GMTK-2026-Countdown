@@ -48,13 +48,17 @@ catalog entries are completed. Previously completed levels remain replayable
 after reordering. Only `Level_01` is configured initially; add real level scenes
 to expand the campaign.
 
-`Level_01` has a **Level Flow** object with `LevelCompletion`. Connect your win
-condition's UnityEvent to **Level Flow > LevelCompletion.CompleteLevel**, or call
-that method from your win logic. It saves completion and returns to the menu,
-where Continue selects the next unfinished level. The project does not yet have
-a win condition, so no gameplay action is wired to completion automatically.
-For each new level, add a scene-level object with `LevelCompletion` and wire its
-win condition. Escape returns to the menu without awarding completion. You can
+Paint **GoalFlag** from `EntityPalette` onto the level's **Entities** child to
+set its goal. Touching the flag with the player saves completion to the profile
+and returns to the menu, where Continue selects the next unfinished level.
+Unlocks follow the order in `Assets/Resources/LevelCatalog.asset`; each unfinished
+level requires all earlier entries to be completed. The flag needs no scene
+reference or UnityEvent wiring. The scene must be an unlocked catalog entry.
+
+`Level_01` has a **Level Flow** object with `LevelCompletion`. Other win conditions
+can still call **LevelCompletion.CompleteLevel**. For each new level, add a
+scene-level object with `LevelCompletion` for menu navigation.
+Escape returns to the menu without awarding completion. You can
 also wire `ReturnToMenu()` to a UI button. This is scene infrastructure and does
 not need an entity palette entry.
 
@@ -196,15 +200,16 @@ easy to snap-paint:
   (e.g. `Box` is 2 tiles wide, `Door` is 1 tile wide, `Switch` is 2 tiles
   wide).
 - Current layout: `Box` spans [-6,-4], gap, `Door` spans [-3,-2], gap,
-  `Switch` spans [-1,1], gap, `GravityReversalArea` spans [2,6]. The next
-  entity added should start at x=7, and so on — always start at
+  `Switch` spans [-1,1], gap, `GravityReversalArea` spans [2,6], gap,
+  `GoalFlag` spans [7,8]. The next entity added should start at x=9,
+  and so on — always start at
   `(previous entity's right edge + 1)`.
 
 ### Gravity reversal area
 
 Paint `GravityReversalArea` from `EntityPalette` with `EntityBrush` onto the
 level's `Entities` child. Its palette entry starts at `(2, 3, 0)` and spans
-four columns; the next free entry starts at x=7.
+four columns; `GoalFlag` occupies the following entry at x=7.
 
 Set **Area Size** on `GravityReversalArea` to define its rectangular width and
 height in grid units (default 4x4). The trigger and translucent cyan visual
@@ -218,3 +223,19 @@ cancel one another. Zero-gravity bodies remain at zero. The player checks for
 ground in the gravity direction and jumps away from it, including ceiling jumps;
 fall speed and wall slides also follow that direction. Dash input remains in
 world directions. This assumes the project's vertical, downward global gravity.
+
+### Goal flag
+
+`Assets/Prefabs/Entities/GoalFlag.prefab` is a green flag with a **1x2** trigger
+footprint and a bottom-left root. Its palette entry is at **(7, 3, 0)**. Select
+`EntityPalette`, use `EntityBrush`, pick the flag's bottom-left cell, and paint
+onto **Level > Entities**. Placed flags remain prefab instances. Edit the Pole,
+Flag, and Base child SpriteRenderers to replace the placeholder visuals.
+
+Only an active player's solid collider activates the goal; boxes and trigger
+sensors do not. The flag follows the existing entity plane/layer rules, so the
+player must touch it on its plane. Completion is queued once per overlap and
+saves before leaving the level. If saving fails or the level is locked or absent
+from the catalog, it stays in the level and logs an error; leave the trigger and
+touch it again to retry. Add further scenes to the catalog and include them in
+the build to expand progression; currently only `Level_01` is configured.

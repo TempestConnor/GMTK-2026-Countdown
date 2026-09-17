@@ -34,3 +34,9 @@ crashlytics-build.properties
 [Aa]ssets/AssetStoreTools*
 
 sysinfo.txt
+
+# Generated Unity performance-test build data
+/Assets/Resources/PerformanceTestRunInfo.json
+/Assets/Resources/PerformanceTestRunInfo.json.meta
+/Assets/Resources/PerformanceTestRunSettings.json
+/Assets/Resources/PerformanceTestRunSettings.json.meta

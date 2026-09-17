@@ -113,5 +113,12 @@ public class MainMenu : MonoBehaviour
         if (ProfileStore.Save(GameProgress.Profile)) ShowHome();
         else { GameProgress.Profile.completedLevelIds = old; status.text = "Reset could not be saved."; }
     }
-    public void QuitGame() => Application.Quit();
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
 }
