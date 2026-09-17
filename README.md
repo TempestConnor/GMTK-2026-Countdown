@@ -2,6 +2,30 @@
 
 ## Main menu, player profile, and level progression
 
+### Editing the menu appearance
+
+The menu UI is saved in `MainMenu.unity` and can be edited outside Play mode.
+Expand **Main Menu > Menu Canvas > Background > Menu Layout** in the Hierarchy.
+Edit the Title, summary labels, and the panels under **Panels** using their
+RectTransform, Image, Text, and layout components. Vertical Layout Groups control
+spacing; Layout Elements control button heights. The Canvas Scaler controls how
+the layout scales with the game window.
+
+Home Panel is visible by default. To preview Level Select Panel or Profile Panel,
+disable Home Panel and enable the desired panel in the Inspector. Reset Confirmation
+is a separate panel directly under Menu Canvas. Play mode always starts on Home.
+The scene's buttons have persistent On Click events targeting the Main Menu
+controller, and its serialized fields reference the scene UI. Preserve these
+references when replacing elements.
+
+Edit `Assets/Prefabs/UI/MenuButton.prefab` to restyle the shared static buttons;
+scene instances keep their own labels and click events. Edit
+`Assets/Prefabs/UI/LevelButton.prefab` to style level entries. Only those entries
+are instantiated at runtime under **Level Select Panel > Level Scroll View >
+Viewport > Level List**. Their label and unlocked state come from the catalog.
+The controller updates profile/progress/status text and the Play/Continue label,
+but leaves fonts, colors, layout, and other static text to the scene and prefabs.
+
 Open `Assets/Scenes/MainMenu.unity` and press Play to use the menu. It is the
 first build scene. Play/Continue loads the first unfinished level; Level Select
 shows available, completed, and locked levels. Player Profile lets the player
