@@ -15,7 +15,7 @@ MonoBehaviour:
   walkSpeed: 5
   jumpImpulse: 11
   gravityMultiplier: 2
-  maxFallSpeed: 8
+  maxFallSpeed: 15
   slideSpeed: 2
   wallJumpGravity: 1
   wallJumpBounceDuration: 0.3

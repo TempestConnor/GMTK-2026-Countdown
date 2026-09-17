@@ -14,13 +14,15 @@ public partial class playerController2 : MonoBehaviour
     private bool canJump = true;
     [SerializeField] protected float originalGravity;
     private bool gravityReversed;
+    private float areaGravityMultiplier = 1f;
     private float requestedGravity;
     public float GravityUpSign => (originalGravity < 0f ? -1f : 1f) * (gravityReversed ? -1f : 1f);
     public Vector2 GravityDown => Vector2.down * GravityUpSign;
 
-    public void SetGravityReversed(bool reversed)
+    public void SetGravityReversed(bool reversed, float multiplier = 1f)
     {
         gravityReversed = reversed;
+        areaGravityMultiplier = reversed ? Mathf.Max(1f, multiplier) : 1f;
         setGravityScale(requestedGravity);
         touchingDirection.RefreshContacts();
     }
@@ -220,7 +222,9 @@ public partial class playerController2 : MonoBehaviour
         if (rb.linearVelocity.y * GravityUpSign < 0 && !isDashing && !touchingDirection.isGrounded)
         {
             setGravityScale(originalGravity * stats.gravityMultiplier);
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, GravityUpSign * Mathf.Max(rb.linearVelocity.y * GravityUpSign, -stats.maxFallSpeed));
+            // Launch fields need to accelerate beyond the normal terminal speed.
+            if (areaGravityMultiplier <= 1f)
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, GravityUpSign * Mathf.Max(rb.linearVelocity.y * GravityUpSign, -stats.maxFallSpeed));
         }
 
         // Reset gravity when grounded
@@ -235,6 +239,6 @@ public partial class playerController2 : MonoBehaviour
     protected void setGravityScale(float scale)
     {
         requestedGravity = scale;
-        rb.gravityScale = scale * (gravityReversed ? -1f : 1f);
+        rb.gravityScale = scale * (gravityReversed ? -1f : 1f) * areaGravityMultiplier;
     }
 }

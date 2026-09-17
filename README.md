@@ -201,7 +201,8 @@ easy to snap-paint:
   wide).
 - Current layout: `Box` spans [-6,-4], gap, `Door` spans [-3,-2], gap,
   `Switch` spans [-1,1], gap, `GravityReversalArea` spans [2,6], gap,
-  `GoalFlag` spans [7,8]. The next entity added should start at x=9,
+  `GoalFlag` spans [7,8], gap, `GravityLaunchArea` spans [9,13].
+  The next entity added should start at x=14,
   and so on — always start at
   `(previous entity's right edge + 1)`.
 
@@ -223,6 +224,23 @@ cancel one another. Zero-gravity bodies remain at zero. The player checks for
 ground in the gravity direction and jumps away from it, including ceiling jumps;
 fall speed and wall slides also follow that direction. Dash input remains in
 world directions. This assumes the project's vertical, downward global gravity.
+
+### Gravity launch area
+
+Paint `GravityLaunchArea` from `EntityPalette` at **(9, 3, 0)** onto the
+level's `Entities` child using `EntityBrush`. This orange **4x4** prefab variant
+inherits the reversal area's trigger, bottom-left pivot, and resizing behavior.
+Its **Gravity Multiplier** defaults to **5**, accelerating affected bodies upward
+with five times their usual gravity strength. Adjust it on the prefab or a placed
+instance; the regular reversal area defaults to 1.
+
+Overlapping fields use the strongest multiplier without stacking. Leaving or
+disabling a field restores the remaining field's strength, or normal gravity
+after the last field. Velocity is never reset by a field transition, so bodies
+keep rising on exit and normal gravity gradually pulls them back down.
+The player bypasses its normal fall-speed cap inside boosted fields; normal
+jump, dash, wall-slide, and collision behavior still apply. Zero-gravity bodies
+remain unaffected.
 
 ### Goal flag
 

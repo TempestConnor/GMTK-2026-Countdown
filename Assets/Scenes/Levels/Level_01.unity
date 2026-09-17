@@ -54193,6 +54193,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 2100000, guid: 94bd510cb629cf345b9869054da8a1e5, type: 2}
     - target: {fileID: 3760654689365679589, guid: b73122876a1c53940957fa6391b8eadb, type: 3}
+      propertyPath: m_ColliderPaths.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3760654689365679589, guid: b73122876a1c53940957fa6391b8eadb, type: 3}
       propertyPath: m_CompositePaths.m_Paths.Array.size
       value: 5
       objectReference: {fileID: 0}

@@ -9,6 +9,8 @@ public sealed class GravityReversalArea : MonoBehaviour
     [Tooltip("Local width and height, measured from the root's bottom-left corner.")]
     public Vector2 areaSize = new Vector2(4f, 4f);
     public LayerMask affectedLayers = ~0;
+    [Min(1f), Tooltip("Reversed gravity strength. Overlapping areas use the strongest multiplier.")]
+    public float gravityMultiplier = 1f;
     [SerializeField] private SpriteRenderer areaVisual;
 
     private BoxCollider2D area;
@@ -19,7 +21,7 @@ public sealed class GravityReversalArea : MonoBehaviour
 
     private sealed class Effect
     {
-        public int count;
+        public readonly HashSet<GravityReversalArea> areas = new HashSet<GravityReversalArea>();
         public float originalScale;
         public playerController2 player;
     }
@@ -71,22 +73,36 @@ public sealed class GravityReversalArea : MonoBehaviour
         }
     }
 
-    private static void Enter(Rigidbody2D body)
+    private void Enter(Rigidbody2D body)
     {
         if (!effects.TryGetValue(body, out var effect))
         {
             effect = new Effect { originalScale = body.gravityScale, player = body.GetComponent<playerController2>() };
             effects.Add(body, effect);
-            if (effect.player != null) effect.player.SetGravityReversed(true);
-            else body.gravityScale = -effect.originalScale;
-            body.WakeUp();
         }
-        effect.count++;
+        effect.areas.Add(this);
+        Apply(body, effect);
     }
 
-    private static void Exit(Rigidbody2D body)
+    private static void Apply(Rigidbody2D body, Effect effect)
     {
-        if (!effects.TryGetValue(body, out var effect) || --effect.count > 0) return;
+        float multiplier = 1f;
+        foreach (var field in effect.areas)
+            multiplier = Mathf.Max(multiplier, field.gravityMultiplier);
+        if (effect.player != null) effect.player.SetGravityReversed(true, multiplier);
+        else body.gravityScale = -effect.originalScale * multiplier;
+        body.WakeUp();
+    }
+
+    private void Exit(Rigidbody2D body)
+    {
+        if (!effects.TryGetValue(body, out var effect)) return;
+        effect.areas.Remove(this);
+        if (effect.areas.Count > 0 && body != null)
+        {
+            Apply(body, effect);
+            return;
+        }
         effects.Remove(body);
         if (body == null) return;
         if (effect.player != null) effect.player.SetGravityReversed(false);
