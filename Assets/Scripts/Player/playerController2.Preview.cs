@@ -22,6 +22,8 @@ public partial class playerController2
     // Layers list), so punching the hole is enough to reveal it -- no extra draw pass needed.
     public void onPreview(InputAction.CallbackContext context)
     {
+        if(!CanPlay) return;
+        
         if (context.started)
         {
             isPreviewHeld = true;

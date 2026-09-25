@@ -1,5 +1,17 @@
 # Project instructions
 
+## Coding assistance preferences
+
+- Suggest code changes only; do not directly edit or apply game code changes.
+  Provide explanations and proposed snippets or diffs for the user to apply.
+- Follow Unity best practices in all suggestions, accounting for the project's
+  Unity version, installed packages, and existing architecture. Prefer clear,
+  maintainable solutions and explain relevant lifecycle, serialization, and
+  performance considerations when they affect the proposed change.
+- For coding tasks, the level-entity workflow below describes what the proposed
+  changes must cover; it does not authorize applying those changes. Clearly
+  distinguish suggested validation steps from checks actually performed.
+
 ## Creating level entities
 
 Before creating or modifying placeable level entities, read `README.md`,

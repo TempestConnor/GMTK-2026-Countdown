@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(direct))]
+[RequireComponent(typeof(PlayerLife))]
 public partial class playerController2 : MonoBehaviour
 {
     
@@ -148,11 +149,14 @@ public partial class playerController2 : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         originalGravity = rb.gravityScale;
         requestedGravity = originalGravity;
+        playerLife = GetComponent<PlayerLife>();
     }
 
     // Physics update should occur on Fixed update instead
     private void FixedUpdate()
     {
+        if(!CanPlay) return;
+
         touchingDirection.RefreshContacts();
         animator.SetFloat("yVelocity", rb.linearVelocity.y * GravityUpSign);
 

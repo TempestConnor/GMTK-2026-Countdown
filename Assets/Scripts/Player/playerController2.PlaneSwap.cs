@@ -78,6 +78,8 @@ public partial class playerController2
     // Aim (right-click): hold to arm/show the targeting circle, release to disarm/hide it.
     public void onAim(InputAction.CallbackContext context)
     {
+        if(!CanPlay) return;
+
         if (context.started && !isBanished)
         {
             if (playerAudio != null) playerAudio.PlayBanishArm();
@@ -95,6 +97,8 @@ public partial class playerController2
     // Fire (left-click): fires the armed circle, or -- if a volley is already out -- recalls it early.
     public void onBanishFire(InputAction.CallbackContext context)
     {
+        if(!CanPlay) return;
+
         if (!context.started) return;
 
         if (isBanished)

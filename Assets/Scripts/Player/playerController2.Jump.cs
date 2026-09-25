@@ -6,7 +6,8 @@ public partial class playerController2
 {
     public void onJump(InputAction.CallbackContext context)
     {
-        // Need to check if alive
+        if (!CanPlay) return;
+        
         touchingDirection.RefreshContacts();
         if (context.started && canJump && touchingDirection.isGrounded)
         {

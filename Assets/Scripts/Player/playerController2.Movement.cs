@@ -5,6 +5,8 @@ public partial class playerController2
 {
     public void onMove(InputAction.CallbackContext context)
     {
+        if (!CanPlay) return;
+        
         moveInput = context.ReadValue<Vector2>();
 
         isMoving = moveInput != Vector2.zero;

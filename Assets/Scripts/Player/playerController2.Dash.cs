@@ -6,6 +6,8 @@ public partial class playerController2
 {
     public void onDash(InputAction.CallbackContext context)
     {
+        if(!CanPlay) return;
+
         if (context.started && canDash)
         {
 
