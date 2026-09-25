@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerLife : MonoBehaviour
 {
@@ -29,11 +30,24 @@ public class PlayerLife : MonoBehaviour
         currentState = LifeState.Dead;
         playerController.onPlayerDeath();
 
+        Respawn();
+
     }
-    private Checkpoint respawnPoint;
     public void Respawn()
     {
-        
+        if(!Application.isPlaying) return;
+
+        Scene scene = gameObject.scene;
+
+        if(scene.buildIndex < 0)
+        {
+            Debug.LogError("PlayerLife.Respawn: Scene is not valid. Cannot respawn player.", this);
+            return;
+        }
+
+        SceneManager.LoadSceneAsync(scene.buildIndex, LoadSceneMode.Single);
     }
+
+    
 
 }
