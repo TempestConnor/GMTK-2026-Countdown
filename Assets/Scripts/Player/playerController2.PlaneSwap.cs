@@ -164,7 +164,7 @@ public partial class playerController2
         banishElapsed = 0f;
         if (countdownIndicator != null) countdownIndicator.Show();
         returnCoroutine = StartCoroutine(ReturnAfterDelay());
-        CheckPlayerPenetration();
+        CheckDamageablePenetration();
     }
 
     private IEnumerator ReturnAfterDelay()
@@ -203,13 +203,14 @@ public partial class playerController2
         isBanished = false;
         if (countdownIndicator != null) countdownIndicator.Hide();
         if (playerAudio != null) playerAudio.PlayBanishReturn();
-        CheckPlayerPenetration();
+        CheckDamageablePenetration();
     }
 
-    private void CheckPlayerPenetration()
+    private void CheckDamageablePenetration()
     {
         // Wait until the entire volley is on its final plane before testing overlap.
         if (TryGetComponent<PlayerPenetrationCheck>(out var check))
             check.CheckNow();
     }
 }
+
