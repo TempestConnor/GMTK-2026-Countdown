@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 5684186335618426187}
   - component: {fileID: 2422928938803609677}
   - component: {fileID: 8746649993719443239}
+  - component: {fileID: 1565196382948474462}
   m_Layer: 6
   m_Name: Door
   m_TagString: Untagged
@@ -105,6 +106,19 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   _isOpen: 0
+--- !u!114 &1565196382948474462
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7652137312916788178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 08dc91bc2d723b74bbc6c3e8b3fb1f32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::KillsOnPenetration
+  penetrationTolerance: 0.03
 --- !u!1 &8502000321989063174
 GameObject:
   m_ObjectHideFlags: 0

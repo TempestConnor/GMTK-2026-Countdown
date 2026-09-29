@@ -141,6 +141,30 @@ color tint (brown vs. gray) on the Tile asset. When real art arrives:
    (or a `RuleTile` once auto-tiling matters), then drag it into
    `TerrainPalette` in the Tile Palette window.
 
+### Nonlethal solid terrain
+
+Choose the green `Tile_SafeWall` in `TerrainPalette` and paint onto
+**Level > Ground** (plane A) or **Level > GroundB** (plane B), alongside lethal
+tiles. Select a tile asset and toggle **Kills On Penetration** to change its
+behavior everywhere it is painted. Ground and Platform are lethal; SafeWall is
+nonlethal. Their existing asset references and palette entries are preserved.
+
+Create new tiles with **Create > 2D > Tiles > Terrain Tile**. `TerrainTile` uses
+a full rectangular grid-cell collider and identity tile transform, matching this
+project's square terrain. Plain Tile and RuleTile assets do not carry this
+lethality property; use TerrainTile for lethal terrain.
+
+Ground and GroundB retain their existing physics, rendering, and plane layers.
+The player checks penetration depth against only nearby lethal cells, using
+**Terrain Penetration Tolerance** (default 0.03 world units) on PlayerPenetrationCheck.
+Crossing into a lethal cell beyond that tolerance kills even when also overlapping a
+safe tile. Normal contact and shallow overlap stay safe.
+
+Safe tiles still block movement and support wall sliding and jumping. Physics
+still attempts to resolve overlap; they are not pass-through surfaces and do
+not guarantee escape from deep overlap after a plane change. The obsolete
+SafeGround/SafeGroundB maps have been removed.
+
 ## Rule Tiles (optional, for auto-tiling)
 
 `com.unity.2d.tilemap.extras` is already in the project, so Rule Tile is
@@ -205,6 +229,41 @@ easy to snap-paint:
   The next entity added should start at x=14,
   and so on — always start at
   `(previous entity's right edge + 1)`.
+
+### Lethal penetration
+
+`KillsOnPenetration` marks a solid object as lethal when the player's movement
+collider overlaps its interior by more than **0.03 world units**. Adjust
+**Penetration Tolerance** on the component if needed. Surface contact and shallow
+physics overlap remain safe. Triggers, disabled colliders, disabled properties,
+and layers that do not collide with the player's current plane are ignored.
+
+The Player prefab uses `PlayerPenetrationCheck`. It checks before each physics
+step and immediately after the complete banish or return volley changes plane,
+then calls the existing `PlayerLife.Kill()` death/scene-reload flow. Keep this
+explicit check after all group members move, not inside `Banishable.SetPlane`.
+Other teleport code should call `CheckNow()` after completing its changes.
+
+The existing Box and Door prefabs carry the property. Their existing palette
+entries inherit it without repainting. Tilemaps use each TerrainTile asset's
+Kills On Penetration flag instead of this whole-object property.
+Terrain CompositeCollider2D geometry uses **Polygons** so a player fully enclosed
+by terrain still overlaps a filled shape. Keep these colliders solid (Is Trigger
+off). For another existing entity, add the property to its prefab's collider
+object or parent and preserve its existing palette entry. New entity types still
+follow the prefab and palette workflow above.
+
+With Unity open in Edit mode, rerun the isolated collision and palette-painting
+checks using the installed Pipeline package:
+
+```powershell
+unity command --caller plugin --skill unity-cli run_script --file Tools/Validation/ValidatePenetration.cs --format json
+unity command --caller plugin --skill unity-cli run_script --file Tools/Validation/ValidateTerrainTiles.cs --format json
+```
+
+The check uses a temporary preview scene and closes it afterwards; it does not
+save or replace the working scene. Gameplay validation should additionally cover
+self-banish into a wall, early recall, and automatic return while inside terrain.
 
 ### Gravity reversal area
 
