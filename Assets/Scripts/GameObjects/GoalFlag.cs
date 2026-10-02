@@ -18,7 +18,7 @@ public class GoalFlag : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (completed || completionPending || other.isTrigger) return;
+        if (RoomTravel.IsLoading || completed || completionPending || other.isTrigger) return;
         var player = other.GetComponentInParent<playerController2>();
         if (player == null || !player.isActiveAndEnabled) return;
         // Never award the active level for a goal in a different loaded scene.
@@ -28,6 +28,7 @@ public class GoalFlag : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (RoomTravel.IsLoading) { completionPending = false; return; }
         if (!completionPending) return;
         completionPending = false;
         // Finish outside the physics callback, once even with multiple player colliders.

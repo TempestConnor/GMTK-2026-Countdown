@@ -53,7 +53,7 @@ set its goal. Touching the flag with the player saves completion to the profile
 and returns to the menu, where Continue selects the next unfinished level.
 Unlocks follow the order in `Assets/Resources/LevelCatalog.asset`; each unfinished
 level requires all earlier entries to be completed. The flag needs no scene
-reference or UnityEvent wiring. The scene must be an unlocked catalog entry.
+reference or UnityEvent wiring. The scene must belong to an unlocked catalog level.
 
 `Level_01` has a **Level Flow** object with `LevelCompletion`. Other win conditions
 can still call **LevelCompletion.CompleteLevel**. For each new level, add a
@@ -66,6 +66,88 @@ This project uses Unity's Tilemap system for terrain and the `GameObjectBrush`
 (2D Tilemap Extras) for placing enemies, hazards, and other entities — both
 painted the same way, from the Tile Palette window.
 
+## Rooms, transitions, and player input locks
+
+A level can contain several room scenes, with one room loaded at a time. The
+catalog's **Scene Path** remains its starting room; add its other scene paths to
+**Room Scene Paths** on `Assets/Resources/LevelCatalog.asset`, then use **Include
+catalog scenes in build**. Goal flags in any of those rooms complete the same
+level. Continue starts at the starting room; entrance checkpoints are session-only.
+
+Paint **RoomTransition** from `EntityPalette` at **(16, 3, 0)** using `EntityBrush`
+onto **Level > Entities**. Its prefab is
+`Assets/Prefabs/Entities/RoomTransition.prefab`. It has a bottom-left grid root,
+a default 1x4 trigger, and an **Area Size** field. Its cyan palette visual is
+hidden during gameplay; Scene-view gizmos show the trigger and arrival marker.
+Transitions work on both player planes and cannot be banished.
+
+1. Give each placed zone a **Zone ID** unique within its room, such as `east`.
+2. Create **Game > Room Connection** in the Project window. Select both room
+   scenes and enter their zone IDs under Endpoint A and Endpoint B.
+3. Assign the same connection asset to both painted zones. This single pair
+   defines both travel directions.
+4. Move each zone's **Arrival** child to a safe player-root position inside its
+   room's camera, clear of terrain on both planes. Keep the root unrotated and
+   unscaled; resize with Area Size. Make the trigger thick enough to catch dashes.
+5. Include the room scenes in the build and click **Validate paired zones** on
+   the connection asset after saving both scenes. Build validation also checks
+   saved zone IDs, matching connections, arrival markers, and player counts.
+
+The camera death boundary is always **four world units (four tiles)** beyond
+each camera edge: **camera -> transition strip -> death boundary**. There is no
+margin setting. Place transitions in that strip or on the camera edge. The
+boundary follows the actual camera; a following camera still needs the room's
+usual camera confinement. Non-transition edges remain lethal after the margin.
+
+Entry immediately locks inputs, cancels all actions except active banish, and
+freezes physics while loading. The destination's player appears at the paired
+Arrival marker with zero velocity. Input resumes after setup; overlapping
+doorways cannot send the player back until the player clears them. Each room
+needs exactly one active Player prefab and its normal camera/terrain setup.
+
+Banish preserves the player's plane and remaining return timer across travel;
+loading time does not consume that timer. Banished objects in the old room are
+unloaded and reset with that room. Targeting/arming is cancelled. Death cancels
+all current actions and reloads only the current room, restoring the entrance
+position with banish reset. Direct
+Play or starting a level uses the authored spawn. Re-entering rooms resets their
+objects; there is no cross-room puzzle-state persistence.
+
+`Assets/Scenes/Rooms/ExampleRoom_A.unity` and `ExampleRoom_B.unity` form a working
+standalone pair using `Assets/Data/RoomConnections/ExampleRoomConnection.asset`.
+They are included in the build for testing, but are not campaign catalog levels.
+Open A and walk right; open B and walk left. Existing levels are not split
+automatically.
+
+**Shared input locking:** acquire an `IDisposable` lease from the player's
+`PlayerInputLock.Acquire()` and dispose that same lease when your dialogue or
+cutscene ends (also release it if its owner is disabled/destroyed). Multiple
+owners can lock at once; only releasing the last lease restores input. The
+lock disables the player's InputAction asset centrally and clears held input
+state. New actions must use that player's InputAction asset; direct device
+polling bypasses it. Input locking alone does not freeze physics or cancel
+active abilities.
+
+**Cancellation:** implement `IPlayerAction.Cancel()` and register the action
+with `PlayerActionCancellation`. Each existing action's implementation lives
+beside its behavior in the controller's partial file; `InitializeActions`
+registers them once. Actions caching held/buffered input also implement
+`IPlayerInputState.ClearInput()`; the registry clears those on the first input
+lock without needing a per-action list in the lock script. New separately attached action components should register
+on enable and unregister on disable. `CancelAll()` is the common death cleanup;
+room travel excludes only the active banish action. Each action stops its own
+coroutines and effects. No per-action list is needed in the death handler.
+
+Validation scripts in `Tools/Validation/`:
+
+- `ValidateRooms.cs`: prefab/palette connections, actual EntityBrush painting,
+  cancellation registry, paired saved-room validation, and catalog membership.
+- `RoomPlaySession.Start` / `.Stop`: enter the example room for testing and
+  restore the previous play-start scene afterwards without replacing open scenes.
+- `ValidateRoomsPlay.cs`: run while playing ExampleRoom_A to exercise stacked
+  input locks, cancellation, live room loads, banish transfer, death/respawn,
+  reverse trigger physics, and the four-tile death boundary.
+
 ## Folder structure
 
 | Path | Contents |
@@ -74,7 +156,8 @@ painted the same way, from the Tile Palette window.
 | `Assets/Palettes/` | Tile Palette prefabs and brushes used to paint |
 | `Assets/Prefabs/Level/LevelTemplate.prefab` | Reusable `Grid → Ground, Entities` skeleton every level is built from |
 | `Assets/Prefabs/Entities/` | Enemy/hazard/pickup prefabs (create this folder as you add them) |
-| `Assets/Scenes/Levels/` | One `.unity` scene per level |
+| `Assets/Scenes/Levels/` | Starting-room scenes for campaign levels |
+| `Assets/Scenes/Rooms/` | Additional room scenes and the paired room examples |
 
 Editing `LevelTemplate.prefab` (e.g. adding a new tilemap layer) updates every
 level built from it, since each level's `Level` object is a prefab instance,
@@ -226,7 +309,9 @@ easy to snap-paint:
 - Current layout: `Box` spans [-6,-4], gap, `Door` spans [-3,-2], gap,
   `Switch` spans [-1,1], gap, `GravityReversalArea` spans [2,6], gap,
   `GoalFlag` spans [7,8], gap, `GravityLaunchArea` spans [9,13].
-  The next entity added should start at x=14,
+  `Spike` spans [14,15], after one empty column.
+  `RoomTransition` spans [16,17], after one empty column.
+  The next entity added should start at x=18,
   and so on — always start at
   `(previous entity's right edge + 1)`.
 
@@ -238,9 +323,12 @@ collider overlaps its interior by more than **0.03 world units**. Adjust
 physics overlap remain safe. Triggers, disabled colliders, disabled properties,
 and layers that do not collide with the player's current plane are ignored.
 
-The Player prefab uses `PlayerPenetrationCheck`. It checks before each physics
-step and immediately after the complete banish or return volley changes plane,
-then calls the existing `PlayerLife.Kill()` death/scene-reload flow. Keep this
+The Player prefab uses `PlayerPenetrationCheck`, a compatibility subclass of
+`DamageablePenetrationCheck` that preserves existing serialized collider settings.
+It checks before each physics step. After the complete banish or return volley
+changes plane, all active `DamageablePenetrationCheck` components are checked.
+Lethal overlap calls `Damageable.Kill()`; the player's On Killed event calls the
+existing `PlayerLife.Kill()` death/scene-reload flow. Keep this
 explicit check after all group members move, not inside `Banishable.SetPlane`.
 Other teleport code should call `CheckNow()` after completing its changes.
 
@@ -264,6 +352,52 @@ unity command --caller plugin --skill unity-cli run_script --file Tools/Validati
 The check uses a temporary preview scene and closes it afterwards; it does not
 save or replace the working scene. Gameplay validation should additionally cover
 self-banish into a wall, early recall, and automatic return while inside terrain.
+
+### Killable objects and contact hazards
+
+Add **Damageable** to the object's Rigidbody2D root to make it killable. Connect
+its **On Killed** event to the object's death behavior. For a simple disappearing
+object, select **Damageable > DestroyObject** in the event; for custom behavior,
+connect your own component method. The player prefab already connects this event
+to **PlayerLife > Kill**. No player-specific code or inheritance is needed for
+other objects.
+
+`Damageable.Kill()` sets **IsDead** before invoking the event and ignores repeated
+calls or a disabled Damageable. For pooled objects, call `ResetLife()` explicitly
+when spawning them again; disabling and re-enabling does not automatically revive
+them. This is instant death, without health points or damage amounts.
+
+For lethal solid/terrain penetration, also add **DamageablePenetrationCheck** and
+assign the object's solid body collider. Use a simulated Rigidbody2D. Existing
+objects do not become killable until they opt in. `KillsOnPenetration` remains the
+hazard marker and keeps its penetration tolerance.
+
+Add **KillsOnContact** on the hazard's collider object to kill Damageable bodies
+on 2D trigger or solid collision contact. Enter and stay callbacks are supported;
+trigger sensors and objects without Damageable are ignored. Physics layer rules
+still apply. At least one participating object needs a Rigidbody2D.
+
+### Spike
+
+Paint **Spike** from **EntityPalette** at **(14, 3, 0)** with **EntityBrush** onto
+**Level > Entities**. The prefab is `Assets/Prefabs/Entities/Spike.prefab`, with a
+red triangle placeholder sprite and a matching triangular trigger. It carries
+`KillsOnContact` and has no `Banishable` component. It follows the same editor
+plane assignment and preview materials as other static entities.
+
+Select a painted spike and change **Cardinal Orientation > Facing** to **Up**,
+**Right**, **Down**, or **Left**. The sprite and hitbox rotate together in exact
+90-degree steps around the cell center. Keep the root transform unrotated: its
+bottom-left grid anchor stays fixed. Direction is a per-instance prefab override;
+changing the prefab's default affects instances without that override. Replace
+the sprite on the **Sprite** child and adjust its PolygonCollider2D to match any
+new artwork.
+
+Run `Tools/Validation/ValidateSpike.cs` through the Unity CLI `run_script`
+command to check orientation, damageable contact handlers, non-player penetration
+death, player event wiring, and connected palette painting in an isolated preview
+scene. Contact-handler checks invoke callbacks directly; gameplay physics and
+scene reload should also be exercised in Play mode.
 
 ### Gravity reversal area
 

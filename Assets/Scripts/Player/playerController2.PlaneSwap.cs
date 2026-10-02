@@ -5,6 +5,59 @@ using UnityEngine.InputSystem;
 
 public partial class playerController2
 {
+    private sealed class AimAction : IPlayerAction, IPlayerInputState
+    {
+        private readonly playerController2 player;
+        public AimAction(playerController2 player) { this.player = player; }
+        public void ClearInput() => Cancel();
+        public void Cancel()
+        {
+            player.isTargeting = false;
+            player.armElapsed = 0;
+            if (player.reticule != null) player.reticule.Hide();
+        }
+    }
+
+    private sealed class BanishAction : IPlayerAction
+    {
+        private readonly playerController2 player;
+        public BanishAction(playerController2 player) { this.player = player; }
+        public void Cancel()
+        {
+            player.ReturnBanished();
+            player.banishElapsed = 0;
+        }
+    }
+
+    public struct BanishState
+    {
+        public bool active;
+        public bool playerBanished;
+        public float remaining;
+    }
+
+    public BanishState CaptureBanishState() => new BanishState
+    {
+        active = isBanished,
+        playerBanished = isBanished && banishedMembers.Contains(planeMember),
+        remaining = banishStats == null ? 0 : Mathf.Max(0, banishStats.returnDelay - banishElapsed)
+    };
+
+    public void RestoreBanishState(BanishState state)
+    {
+        if (!state.active || banishStats == null) return;
+        isBanished = true;
+        banishElapsed = Mathf.Max(0, banishStats.returnDelay - state.remaining);
+        if (state.playerBanished)
+        {
+            banishedMembers.Add(planeMember);
+            planeMember.SetPlane(Banishable.Plane.B);
+            touchingDirection.SetActivePlane(Banishable.Plane.B);
+            UpdateCameraVisibility(Banishable.Plane.B);
+        }
+        if (countdownIndicator != null) countdownIndicator.Show();
+        returnCoroutine = StartCoroutine(ReturnAfterDelay(state.remaining));
+    }
     [SerializeField] private float swapTargetRadius = 2f;
 
     [Header("Banish")]
@@ -48,6 +101,7 @@ public partial class playerController2
 
     private void Update()
     {
+        if (RoomTravel.IsLoading) return;
         if (isTargeting)
         {
             UpdateReticule();
@@ -63,9 +117,10 @@ public partial class playerController2
 
     private void UpdateCountdownIndicator()
     {
-        if (countdownIndicator == null || banishStats == null) return;
+        if (banishStats == null) return;
 
         banishElapsed = Mathf.Min(banishElapsed + Time.deltaTime, banishStats.returnDelay);
+        if (countdownIndicator == null) return;
         countdownIndicator.transform.position = GetPointerWorldPosition();
 
         float remainingFraction = banishStats.returnDelay > 0f
@@ -131,6 +186,7 @@ public partial class playerController2
         var cam = Camera.main;
         if (cam == null) return transform.position;
 
+        if (Mouse.current == null) return transform.position;
         Vector3 screenPos = Mouse.current.position.ReadValue();
         screenPos.z = Mathf.Abs(cam.transform.position.z - transform.position.z);
 
@@ -163,13 +219,17 @@ public partial class playerController2
         isBanished = true;
         banishElapsed = 0f;
         if (countdownIndicator != null) countdownIndicator.Show();
-        returnCoroutine = StartCoroutine(ReturnAfterDelay());
+        returnCoroutine = StartCoroutine(ReturnAfterDelay(banishStats.returnDelay));
         CheckDamageablePenetration();
     }
 
-    private IEnumerator ReturnAfterDelay()
+    private IEnumerator ReturnAfterDelay(float remaining)
     {
-        yield return new WaitForSeconds(banishStats.returnDelay);
+        while (remaining > 0)
+        {
+            yield return null;
+            if (!RoomTravel.IsLoading) remaining -= Time.deltaTime;
+        }
         returnCoroutine = null;
         ReturnBanished();
     }
@@ -209,8 +269,8 @@ public partial class playerController2
     private void CheckDamageablePenetration()
     {
         // Wait until the entire volley is on its final plane before testing overlap.
-        if (TryGetComponent<PlayerPenetrationCheck>(out var check))
-            check.CheckNow();
+        foreach (var check in FindObjectsByType<DamageablePenetrationCheck>(FindObjectsSortMode.None))
+            if (check != null) check.CheckNow();
     }
 }
 

@@ -3,6 +3,19 @@ using UnityEngine.InputSystem;
 
 public partial class playerController2
 {
+    private sealed class PreviewAction : IPlayerAction, IPlayerInputState
+    {
+        private readonly playerController2 player;
+        public PreviewAction(playerController2 player) { this.player = player; }
+        public void ClearInput() => player.isPreviewHeld = false;
+        public void Cancel()
+        {
+            player.isPreviewHeld = false;
+            player.previewRadius = 0;
+            Shader.SetGlobalFloat(PreviewRadiusId, 0);
+            UpdateCameraVisibility(player.planeMember.CurrentPlane);
+        }
+    }
     [Header("Plane Preview")]
     [SerializeField] private PreviewStats previewStats;
 

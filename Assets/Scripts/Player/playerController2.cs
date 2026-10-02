@@ -3,6 +3,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(direct))]
 [RequireComponent(typeof(PlayerLife))]
+[RequireComponent(typeof(PlayerInputLock), typeof(PlayerActionCancellation))]
 public partial class playerController2 : MonoBehaviour
 {
     
@@ -150,12 +151,13 @@ public partial class playerController2 : MonoBehaviour
         originalGravity = rb.gravityScale;
         requestedGravity = originalGravity;
         playerLife = GetComponent<PlayerLife>();
+        InitializeActions();
     }
 
     // Physics update should occur on Fixed update instead
     private void FixedUpdate()
     {
-        if(!CanPlay) return;
+        if (!playerLife.isAlive || RoomTravel.IsLoading) return;
 
         touchingDirection.RefreshContacts();
         animator.SetFloat("yVelocity", rb.linearVelocity.y * GravityUpSign);
@@ -188,9 +190,10 @@ public partial class playerController2 : MonoBehaviour
 
             canWallJump = true;
         }
-        else if (isSliding && !touchingDirection.isOnWall || touchingDirection.isGrounded)
+        else if (isSliding && (!touchingDirection.isOnWall || touchingDirection.isGrounded))
         {
-            StartCoroutine(wallJumpWait());
+            if (wallWindowCoroutine != null) StopCoroutine(wallWindowCoroutine);
+            wallWindowCoroutine = StartCoroutine(wallJumpWait());
             isSliding = false;
         }
 

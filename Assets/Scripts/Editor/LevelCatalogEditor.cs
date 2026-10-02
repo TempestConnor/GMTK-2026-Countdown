@@ -27,10 +27,15 @@ public class LevelCatalogEditor : Editor
             var scenes = new List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
             foreach (var level in ((LevelCatalog)target).levels)
             {
-                if (AssetDatabase.LoadAssetAtPath<SceneAsset>(level.scenePath) == null) continue;
-                var existing = scenes.Find(s => s.path == level.scenePath);
-                if (existing != null) existing.enabled = true;
-                else scenes.Add(new EditorBuildSettingsScene(level.scenePath, true));
+                var paths = new List<string> { level.scenePath };
+                if (level.roomScenePaths != null) paths.AddRange(level.roomScenePaths);
+                foreach (string path in paths)
+                {
+                    if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) == null) continue;
+                    var existing = scenes.Find(s => s.path == path);
+                    if (existing != null) existing.enabled = true;
+                    else scenes.Add(new EditorBuildSettingsScene(path, true));
+                }
             }
             EditorBuildSettings.scenes = scenes.ToArray();
         }
@@ -55,6 +60,11 @@ public class LevelCatalogBuildValidation : IPreprocessBuildWithReport
                 string.IsNullOrWhiteSpace(level.title) || string.IsNullOrEmpty(level.scenePath) ||
                 !paths.Add(level.scenePath) || !scenes.Contains(level.scenePath) || AssetDatabase.LoadAssetAtPath<SceneAsset>(level.scenePath) == null)
                 throw new BuildFailedException("LevelCatalog needs unique nonempty IDs, titles, unique valid scenes, and enabled build entries.");
+            if (level.roomScenePaths == null) continue;
+            foreach (string path in level.roomScenePaths)
+                if (string.IsNullOrWhiteSpace(path) || !paths.Add(path) || !scenes.Contains(path) ||
+                    AssetDatabase.LoadAssetAtPath<SceneAsset>(path) == null)
+                    throw new BuildFailedException("Each room must belong to one level and have a unique valid scene enabled in the build: " + path);
         }
     }
 }

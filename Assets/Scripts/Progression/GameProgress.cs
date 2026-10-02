@@ -14,6 +14,7 @@ public static class GameProgress
 
     public static bool LoadLevel(int index)
     {
+        if (RoomTravel.IsLoading) return false;
         if (Catalog == null || !Catalog.IsUnlocked(Profile, index)) return false;
         string path = Catalog.levels[index].scenePath;
         if (!Application.CanStreamedLevelBeLoaded(path))
@@ -22,6 +23,7 @@ public static class GameProgress
             return false;
         }
         Time.timeScale = 1;
+        RoomTravel.ClearSession();
         SceneManager.LoadScene(path);
         return true;
     }
@@ -29,7 +31,7 @@ public static class GameProgress
     public static bool CompleteCurrentLevel()
     {
         if (Catalog == null) return false;
-        int index = Catalog.levels.FindIndex(level => level.scenePath == SceneManager.GetActiveScene().path);
+        int index = Catalog.levels.FindIndex(level => level.ContainsScene(SceneManager.GetActiveScene().path));
         if (index < 0 || !Catalog.IsUnlocked(Profile, index)) return false;
         string id = Catalog.levels[index].id;
         bool alreadyCompleted = Profile.HasCompleted(id);
@@ -41,6 +43,8 @@ public static class GameProgress
 
     public static void OpenMenu()
     {
+        if (RoomTravel.IsLoading) return;
+        RoomTravel.ClearSession();
         Time.timeScale = 1;
         SceneManager.LoadScene(MenuScene);
     }

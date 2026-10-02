@@ -13,6 +13,11 @@ public class LevelCatalog : ScriptableObject
         public string title;
         [Tooltip("Full scene asset path, including .unity.")]
         public string scenePath;
+        [Tooltip("Additional room scenes belonging to this level. Scene Path above remains the starting room.")]
+        public List<string> roomScenePaths = new List<string>();
+
+        public bool ContainsScene(string path) => scenePath == path ||
+            (roomScenePaths != null && roomScenePaths.Contains(path));
     }
 
     [Tooltip("Drag entries to change progression order. First level is always unlocked.")]

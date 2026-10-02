@@ -3,48 +3,39 @@ using UnityEngine;
 public partial class playerController2
 {
     private PlayerLife playerLife;
-    private bool CanPlay => playerLife != null && playerLife.isAlive;
+    private PlayerInputLock inputLock;
+    private PlayerActionCancellation actions;
+    private BanishAction banishAction;
+    private bool CanPlay => playerLife != null && playerLife.isAlive && !inputLock.IsLocked;
+
+    private void InitializeActions()
+    {
+        inputLock = GetComponent<PlayerInputLock>();
+        actions = GetComponent<PlayerActionCancellation>();
+        actions.Register(new MovementAction(this));
+        actions.Register(new DashAction(this));
+        actions.Register(new JumpAction(this));
+        actions.Register(new AimAction(this));
+        actions.Register(new PreviewAction(this));
+        banishAction = new BanishAction(this);
+        actions.Register(banishAction);
+        inputLock.Locked += actions.ClearInputState;
+    }
+
+    private void OnDestroy()
+    {
+        if (inputLock != null && actions != null) inputLock.Locked -= actions.ClearInputState;
+    }
+
+    public void CancelActionsForTransition() => actions.CancelAll(banishAction);
 
     public void onPlayerDeath()
     {
-        StopAllCoroutines();
-        returnCoroutine = null;
-
+        inputLock.Acquire(); // Held for this player's remaining lifetime.
+        actions.CancelAll();
         rb.linearVelocity = Vector2.zero;
         rb.angularVelocity = 0f;
         rb.simulated = false;
-
-        ReturnBanished();
-
-        moveInput = Vector2.zero;
-        dashDirection = Vector2.zero;
-        wallJumpDirection = Vector2.zero;
-
-        canwalk = false;
-        canDash = false;
-        canJump = false;
-        canWallJump = false;
-
-        isMoving = false;
-        isDashing = false;
-        isSliding = false;
-        isWallJumping = false;
-
-        isTargeting = false;
-        armElapsed = 0f;
-        banishElapsed = 0f;
-
-        if(reticule != null) reticule.Hide();
-        if(countdownIndicator != null) countdownIndicator.Hide();
-
-        isPreviewHeld = false;
-        previewRadius = 0f;
-        Shader.SetGlobalFloat(PreviewRadiusId, 0f);
-        UpdateCameraVisibility(planeMember.CurrentPlane);
-
-        animator.ResetTrigger("jump");
-        animator.ResetTrigger("dash");
-        animator.SetFloat("yVelocity", 0f);
 
         //Begin Death Animation/Sound?
     }

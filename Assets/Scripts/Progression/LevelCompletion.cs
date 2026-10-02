@@ -7,7 +7,7 @@ public class LevelCompletion : MonoBehaviour
 
     private void Update()
     {
-        if (UnityEngine.InputSystem.Keyboard.current != null &&
+        if (!RoomTravel.IsLoading && UnityEngine.InputSystem.Keyboard.current != null &&
             UnityEngine.InputSystem.Keyboard.current.escapeKey.wasPressedThisFrame)
             ReturnToMenu();
     }
