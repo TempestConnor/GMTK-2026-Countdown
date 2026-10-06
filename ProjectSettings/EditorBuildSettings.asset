@@ -20,5 +20,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Rooms/ExampleRoom_B.unity
     guid: 48106ffd412c5f148a17e5c8d01494df
+  - enabled: 1
+    path: Assets/Scenes/Levels/Level_02.unity
+    guid: 24c04c70459d9ac43908f98c86129b7e
+  - enabled: 1
+    path: Assets/Scenes/Rooms/Level_02_Room_02.unity
+    guid: 110696fc94b22194388f52daf813672e
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

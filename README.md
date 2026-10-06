@@ -212,6 +212,13 @@ color tint (brown vs. gray) on the Tile asset. When real art arrives:
 
 ## Painting terrain
 
+To copy the active room's painted **Ground** cells onto **GroundB**, choose
+**Tools > Level > Copy Ground A to Ground B** in Edit mode. Tile assets, cell
+colors, transforms, and flags are copied at the same grid coordinates. Existing
+GroundB tiles outside the source layout remain untouched. The operation supports
+Ctrl+Z and leaves the scene unsaved for review. Editor scripts can also call
+`GroundTileCopy.CopyPaintedCells(source, destination)` with two Tilemaps.
+
 1. `Window → 2D → Tile Palette`.
 2. Set the palette dropdown to `TerrainPalette` and the brush to the default
    brush.
