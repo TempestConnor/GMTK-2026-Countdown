@@ -12,6 +12,9 @@ public static class RoomTravel
     private static playerController2.BanishState entranceBanish;
     private static bool restoreEntrance;
     private static IDisposable sourceLock;
+    private static RoomFade fade;
+    private static Rigidbody2D arrivalBody;
+    private static bool arrivalWasSimulated;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     private static void ResetStatics()
@@ -23,6 +26,10 @@ public static class RoomTravel
 
     public static void ClearSession()
     {
+        if (fade != null) UnityEngine.Object.Destroy(fade.gameObject);
+        fade = null;
+        if (arrivalBody != null) arrivalBody.simulated = arrivalWasSimulated;
+        arrivalBody = null;
         sourceLock?.Dispose();
         sourceLock = null;
         IsLoading = restoreEntrance = false;
@@ -81,6 +88,17 @@ public static class RoomTravel
         body.linearVelocity = Vector2.zero;
         body.angularVelocity = 0;
         body.simulated = false;
+        if (transition)
+        {
+            fade = RoomFade.Create();
+            fade.FadeOut(() => LoadScene(player, path));
+            return true;
+        }
+        return LoadScene(player, path);
+    }
+
+    private static bool LoadScene(PlayerLife player, string path)
+    {
         try
         {
             if (SceneManager.LoadSceneAsync(path, LoadSceneMode.Single) == null)
@@ -89,10 +107,8 @@ public static class RoomTravel
         }
         catch (Exception error)
         {
-            IsLoading = restoreEntrance = false;
-            if (player.isAlive) body.simulated = true;
-            sourceLock.Dispose();
-            sourceLock = null;
+            if (player != null && player.isAlive) player.GetComponent<Rigidbody2D>().simulated = true;
+            ClearSession();
             Debug.LogException(error, player);
             return false;
         }
@@ -109,8 +125,32 @@ public static class RoomTravel
         {
             sourceLock?.Dispose();
             sourceLock = null;
-            restoreEntrance = IsLoading = false;
+            if (fade != null)
+            {
+                foreach (var player in UnityEngine.Object.FindObjectsByType<PlayerLife>())
+                {
+                    if (player.gameObject.scene != scene) continue;
+                    sourceLock = player.GetComponent<PlayerInputLock>().Acquire();
+                    arrivalBody = player.GetComponent<Rigidbody2D>();
+                    arrivalWasSimulated = arrivalBody.simulated;
+                    arrivalBody.simulated = false;
+                    break;
+                }
+                fade.FadeIn(() => FinishArrival(scene));
+            }
+            else FinishArrival(scene);
         }
+    }
+
+    private static void FinishArrival(Scene scene)
+    {
+        if (arrivalBody != null) arrivalBody.simulated = arrivalWasSimulated;
+        arrivalBody = null;
+        sourceLock?.Dispose();
+        sourceLock = null;
+        if (fade != null) UnityEngine.Object.Destroy(fade.gameObject);
+        fade = null;
+        restoreEntrance = IsLoading = false;
         // Teleport and plane restoration are complete; lethal overlap must use the final state.
         foreach (var check in UnityEngine.Object.FindObjectsByType<PlayerPenetrationCheck>())
             if (check.gameObject.scene == scene) check.CheckNow();

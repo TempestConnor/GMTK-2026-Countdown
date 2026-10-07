@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b5ac848dcd3a7d345b0914efc15b4305, type: 3}
   m_Name: BanishStats_Default
   m_EditorClassIdentifier: Assembly-CSharp::BanishStats
-  armTime: 0.15
+  armTime: 0.0375
   targetRadius: 2.5
   returnDelay: 8

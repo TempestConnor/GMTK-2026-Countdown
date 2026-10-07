@@ -13,6 +13,23 @@ public class BanishReticule : MonoBehaviour
 
     private CircleCollider2D circleCollider;
     private readonly HashSet<Banishable> touching = new HashSet<Banishable>();
+    private float previousTimeScale;
+    private float previousFixedDeltaTime;
+
+    private void OnEnable()
+    {
+        previousTimeScale = Time.timeScale;
+        previousFixedDeltaTime = Time.fixedDeltaTime;
+        Time.timeScale = previousTimeScale * 0.25f;
+        Time.fixedDeltaTime = previousFixedDeltaTime * 0.25f;
+    }
+
+    private void OnDisable()
+    {
+        Time.timeScale = previousTimeScale;
+        Time.fixedDeltaTime = previousFixedDeltaTime;
+        touching.Clear();
+    }
 
     public IEnumerable<Banishable> TouchingMembers
     {

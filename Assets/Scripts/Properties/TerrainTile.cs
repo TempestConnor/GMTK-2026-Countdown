@@ -12,7 +12,8 @@ public sealed class TerrainTile : Tile
     {
         base.GetTileData(position, tilemap, ref tileData);
         // Collision and lethal queries share the same full-cell footprint.
-        tileData.colliderType = ColliderType.Grid;
+        // Safe cells get their own merged outline from TerrainCollision.
+        tileData.colliderType = killsOnPenetration ? ColliderType.Grid : ColliderType.None;
         tileData.transform = Matrix4x4.identity;
     }
 }

@@ -10,7 +10,14 @@ public sealed class TerrainTileEditor : Editor
         EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Sprite"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("m_Color"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("killsOnPenetration"));
-        EditorGUILayout.HelpBox("Full-cell solid terrain. Paint onto Ground or GroundB. Collision remains solid when Kills On Penetration is off.", MessageType.Info);
-        serializedObject.ApplyModifiedProperties();
+        EditorGUILayout.HelpBox("Paint onto Ground or GroundB. Lethal tiles are filled solids; safe tiles form hollow regions with solid borders. TerrainCollision generates the safe outlines automatically.", MessageType.Info);
+        if (serializedObject.ApplyModifiedProperties())
+        {
+            foreach (var terrain in UnityEngine.Object.FindObjectsByType<TerrainCollision>())
+            {
+                terrain.GetComponent<UnityEngine.Tilemaps.Tilemap>().RefreshAllTiles();
+                terrain.Rebuild();
+            }
+        }
     }
 }

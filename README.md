@@ -105,6 +105,13 @@ Arrival marker with zero velocity. Input resumes after setup; overlapping
 doorways cannot send the player back until the player clears them. Each room
 needs exactly one active Player prefab and its normal camera/terrain setup.
 
+Room travel fades to black for 0.15 seconds before loading, then fades back in
+for 0.15 seconds after arrival setup. The destination player stays frozen and
+input-locked until the fade finishes. The runtime overlay survives scene loads
+and uses unscaled time. Adjust `FadeOutDuration` and `FadeInDuration` in
+`Assets/Scripts/Progression/RoomFade.cs` to change the timing. Death respawns
+keep their immediate reload behavior.
+
 Banish preserves the player's plane and remaining return timer across travel;
 loading time does not consume that timer. Banished objects in the old room are
 unloaded and reset with that room. Targeting/arming is cancelled. Death cancels
@@ -250,10 +257,25 @@ The player checks penetration depth against only nearby lethal cells, using
 Crossing into a lethal cell beyond that tolerance kills even when also overlapping a
 safe tile. Normal contact and shallow overlap stay safe.
 
-Safe tiles still block movement and support wall sliding and jumping. Physics
-still attempts to resolve overlap; they are not pass-through surfaces and do
-not guarantee escape from deep overlap after a plane change. The obsolete
-SafeGround/SafeGroundB maps have been removed.
+Safe terrain uses hollow outline collision: switching planes fully inside a safe
+region leaves room to walk and jump against its borders without being pushed out.
+Only adjacent safe tiles merge; lethal tiles use separate filled collision, so
+walking from a safe interior into a lethal wall stops at its surface without
+killing the player. Swapping directly into a lethal wall still kills. The player
+must fit inside the safe region; overlapping its border can still cause correction.
+
+`TerrainCollision` bakes a hidden, saved collision-only child for safe cells in
+the editor. Keep painting both types onto Ground or GroundB; no extra authored
+tilemap or palette entry is needed. Painting and undo schedule an editor rebuild;
+scene saving, entering Play mode, and building also bake current collision.
+The generated map uses `Assets/Tiles/Tile_SafeCollision.asset` as its invisible
+grid tile. Do not paint that internal asset or edit the generated child directly.
+Editor scripts needing immediate collision can call `TerrainCollision.Rebuild()`.
+The generation methods are excluded from player builds and do not run in Play
+mode: gameplay loads the saved colliders without scanning or copying terrain.
+Runtime terrain editing is not supported by this baked workflow.
+Keep the Player's continuous collision detection enabled for fast movement.
+The obsolete SafeGround/SafeGroundB maps have been removed.
 
 ## Rule Tiles (optional, for auto-tiling)
 
@@ -342,9 +364,11 @@ Other teleport code should call `CheckNow()` after completing its changes.
 The existing Box and Door prefabs carry the property. Their existing palette
 entries inherit it without repainting. Tilemaps use each TerrainTile asset's
 Kills On Penetration flag instead of this whole-object property.
-Terrain CompositeCollider2D geometry uses **Polygons** so a player fully enclosed
-by terrain still overlaps a filled shape. Keep these colliders solid (Is Trigger
-off). For another existing entity, add the property to its prefab's collider
+The authored terrain CompositeCollider2D uses **Polygons** for lethal cells;
+`TerrainCollision` builds a separate **Outlines** collider for safe cells.
+Filled lethal geometry also detects fully enclosed bodies. Keep this component
+on terrain maps and keep their colliders non-trigger. For another
+existing entity, add the property to its prefab's collider
 object or parent and preserve its existing palette entry. New entity types still
 follow the prefab and palette workflow above.
 
