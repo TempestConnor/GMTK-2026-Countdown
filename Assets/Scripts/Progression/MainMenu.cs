@@ -108,10 +108,18 @@ public class MainMenu : MonoBehaviour
     public void CancelReset() { resetConfirmation.SetActive(false); playerName.Select(); }
     public void ConfirmReset()
     {
-        var old = GameProgress.Profile.completedLevelIds;
-        GameProgress.Profile.completedLevelIds = new List<string>();
-        if (ProfileStore.Save(GameProgress.Profile)) ShowHome();
-        else { GameProgress.Profile.completedLevelIds = old; status.text = "Reset could not be saved."; }
+        var profile = GameProgress.Profile;
+        var oldLevels = profile.completedLevelIds;
+        var oldTutorials = profile.seenTutorialIds;
+        profile.completedLevelIds = new List<string>();
+        profile.seenTutorialIds = new List<string>();
+        if (ProfileStore.Save(profile)) ShowHome();
+        else
+        {
+            profile.completedLevelIds = oldLevels;
+            profile.seenTutorialIds = oldTutorials;
+            status.text = "Reset could not be saved.";
+        }
     }
     public void QuitGame()
     {

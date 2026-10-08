@@ -92,5 +92,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialPromptZone
   areaSize: {x: 2, y: 4}
+  plane: 0
   text: Hold [RIGHT_CLICK] to Aim, Press [LEFT_CLICK] to Banish
   duration: 4
+  showOnEnter: 1
+  showOnBanish: 0
+  showAfterDeath: 0
+  delay: 0
+  completeAction: 
+  completeHoldTime: 0
+  thenShow: []
+  replaces: []

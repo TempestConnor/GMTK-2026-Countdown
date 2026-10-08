@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// On-screen tutorial text. One prompt shows at a time; prompts requested while another is
@@ -11,11 +12,16 @@ using UnityEngine.InputSystem;
 /// The display is created on demand from Resources/TutorialPrompts.prefab in the active room
 /// scene, so it (and its queue) resets with the room on travel or death. Edit that prefab to
 /// restyle the text. All timing uses unscaled time, because banish aiming slows time down.
+///
+/// The prefab also holds the first-death prompt, shown when the room reloads after the
+/// player's first death in any room. It is recorded in the saved player profile, so it shows
+/// once per profile (until progress is reset), not once per room or play session.
 /// </summary>
 [DisallowMultipleComponent]
 public sealed class TutorialPrompts : MonoBehaviour
 {
     const string ResourcePath = "TutorialPrompts";
+    const string FirstDeathId = "first-death";
 
     [SerializeField] private TextMeshProUGUI text;
     [SerializeField] private CanvasGroup group;
@@ -42,6 +48,12 @@ public sealed class TutorialPrompts : MonoBehaviour
     [SerializeField, Min(0f)] private float wiggleJitter = 0.025f;
     [Tooltip("Maximum tilt of each letter in degrees.")]
     [SerializeField, Min(0f)] private float wiggleTilt = 7f;
+
+    [Header("First death (any room, once per profile)")]
+    [Tooltip("Shown after the player's first death, before the room's own After Death prompts. Empty = none.")]
+    [SerializeField, TextArea(2, 5)] private string firstDeathText = "~You died.~ As it turns out, slamming face first into a wall hurts.";
+    [Tooltip("Real-time seconds on screen after fading in. 0 = stays until dismissed.")]
+    [SerializeField, Min(0f)] private float firstDeathDuration = 4f;
 
     private sealed class Entry
     {
@@ -93,7 +105,25 @@ public sealed class TutorialPrompts : MonoBehaviour
 
     // Domain reload is disabled for Play mode, so statics must be reset by hand.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-    private static void ResetStatics() => instance = null;
+    private static void ResetStatics()
+    {
+        instance = null;
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    // sceneLoaded runs before the room's Start methods, so this queues ahead of its After Death prompts.
+    private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        if (!RoomTravel.ArrivedByRespawn || GameProgress.Profile.HasSeenTutorial(FirstDeathId)) return;
+        // Stays marked in memory even if the save fails, so it still shows only once this session.
+        GameProgress.MarkTutorialSeen(FirstDeathId);
+        // Never queue on a display left over from the room being unloaded.
+        if (instance != null && instance.gameObject.scene != scene) instance = null;
+        var display = GetOrCreate();
+        if (display != null && !string.IsNullOrEmpty(display.firstDeathText))
+            display.Enqueue(display, display.firstDeathText, display.firstDeathDuration, null);
+    }
 
     private static TutorialPrompts GetOrCreate()
     {

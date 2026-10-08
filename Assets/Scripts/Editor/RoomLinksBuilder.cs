@@ -148,8 +148,10 @@ public static class RoomLinksBuilder
         if (changed) EditorBuildSettings.scenes = scenes.ToArray();
     }
 
-    /// <summary>Rescans every scene and returns every problem found; empty means valid.</summary>
-    public static List<string> Validate()
+    /// <summary>Rescans every scene and returns every problem found; empty means valid.
+    /// With <paramref name="builtOnly"/>, rooms not enabled in the build (work in progress) are skipped;
+    /// links from built rooms into them are still reported.</summary>
+    public static List<string> Validate(bool builtOnly = false)
     {
         var scenes = RebuildAll();
         var errors = new List<string>();
@@ -164,6 +166,7 @@ public static class RoomLinksBuilder
 
         foreach (var entry in scenes)
         {
+            if (builtOnly && !built.Contains(entry.Key)) continue;
             var ids = new HashSet<string>();
             foreach (var zone in entry.Value.zones)
             {
@@ -189,12 +192,15 @@ public static class RoomLinksBuilder
         }
 
         foreach (var entry in scenes)
+        {
+            if (builtOnly && !built.Contains(entry.Key)) continue;
             foreach (var zone in entry.Value.zones)
             {
                 string key = entry.Key + " / " + zone.id;
                 if (!partners.TryGetValue(key, out var set)) errors.Add(key + ": doorway is not linked to any room.");
                 else if (set.Count > 1) errors.Add(key + ": linked to several doorways: " + string.Join(", ", set));
             }
+        }
         return errors.Distinct().ToList();
     }
 
@@ -212,7 +218,7 @@ public sealed class RoomLinksBuildValidation : IPreprocessBuildWithReport
     public int callbackOrder => 1;
     public void OnPreprocessBuild(BuildReport report)
     {
-        var errors = RoomLinksBuilder.Validate();
+        var errors = RoomLinksBuilder.Validate(builtOnly: true);
         if (errors.Count > 0) throw new BuildFailedException("Room links invalid:\n" + string.Join("\n", errors));
     }
 }

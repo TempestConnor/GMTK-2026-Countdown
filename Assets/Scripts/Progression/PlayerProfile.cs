@@ -9,8 +9,11 @@ public class PlayerProfile
     public int version = 1;
     public string displayName = "Player";
     public List<string> completedLevelIds = new List<string>();
+    /// <summary>One-time tutorials the player has already seen, by ID.</summary>
+    public List<string> seenTutorialIds = new List<string>();
 
     public bool HasCompleted(string id) => completedLevelIds.Contains(id);
+    public bool HasSeenTutorial(string id) => seenTutorialIds.Contains(id);
     public void Complete(string id)
     {
         if (!string.IsNullOrEmpty(id) && !HasCompleted(id)) completedLevelIds.Add(id);
@@ -31,6 +34,8 @@ public static class ProfileStore
                 var profile = JsonUtility.FromJson<PlayerProfile>(File.ReadAllText(path));
                 if (profile == null || profile.version != 1 || profile.completedLevelIds == null)
                     throw new InvalidDataException("Unsupported or invalid profile.");
+                // Profiles saved before tutorials were tracked have no list.
+                if (profile.seenTutorialIds == null) profile.seenTutorialIds = new List<string>();
                 return profile;
             }
             catch (Exception e) { Debug.LogWarning("Could not load profile: " + e.Message); }

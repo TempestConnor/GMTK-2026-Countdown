@@ -41,6 +41,14 @@ public static class GameProgress
         return false;
     }
 
+    /// <summary>Records a one-time tutorial in the saved profile. Returns false if it could not be saved.</summary>
+    public static bool MarkTutorialSeen(string id)
+    {
+        if (string.IsNullOrEmpty(id) || Profile.HasSeenTutorial(id)) return true;
+        Profile.seenTutorialIds.Add(id);
+        return ProfileStore.Save(Profile);
+    }
+
     public static void OpenMenu()
     {
         if (RoomTravel.IsLoading) return;

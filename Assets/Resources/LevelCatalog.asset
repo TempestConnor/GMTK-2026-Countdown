@@ -15,4 +15,16 @@ MonoBehaviour:
   levels:
   - id: level-01
     title: First Steps
-    scenePath: Assets/Scenes/Level01/Level_01.unity
+    scenePath: Assets/Scenes/Level01/Level01_JumpTutorial.unity
+    roomScenePaths:
+    - Assets/Scenes/Level01/Level01_GrabWallJumpTutorial.unity
+    - Assets/Scenes/Level01/Level01_BanishTutorial1.unity
+    - Assets/Scenes/Level01/Level01_BanishTutorial2.unity
+  - id: level-02
+    title: Level 2
+    scenePath: Assets/Scenes/Level02/Level_02.unity
+    roomScenePaths:
+    - Assets/Scenes/Level02/Level_02_Room_02.unity
+    - Assets/Scenes/Level02/Level_02_Room_SafeTileIntro.unity
+    - Assets/Scenes/Level02/Level_02_Room_SafeBoxIntro.unity
+    - Assets/Scenes/Level02/Level_02_Room_Ending.unity
