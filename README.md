@@ -513,6 +513,22 @@ on 2D trigger or solid collision contact. Enter and stay callbacks are supported
 trigger sensors and objects without Damageable are ignored. Physics layer rules
 still apply. At least one participating object needs a Rigidbody2D.
 
+### Door wires
+
+The Door prefab carries `DoorWires`, which draws a dotted wire from each switch in
+the door's **Switches** list to the door, in edit mode and in play mode. A wire is
+white while its switch is in the state the door's **Condition** asks for (pressed
+for AllPressed, released for AllReleased) and red otherwise, so a door is open
+exactly when all its wires are white.
+
+Wires take right-angle routes on the tile grid: the cheapest path where a step
+through solid terrain (tilemaps with a `TilemapCollider2D` on the switch's plane)
+costs less than a step through air, and every bend adds a turn cost. Tune
+**Terrain/Air Step Cost**, **Turn Cost** and **Search Margin** on the prefab. Wires
+re-route when either end moves or terrain is painted. Each wire takes its switch's
+layer, sorting layer and material, so it hides on the other plane like the switch.
+Dots have no colliders, are hidden from the Hierarchy and are never saved.
+
 ### Spike
 
 Paint **Spike** from **EntityPalette** at **(14, 3, 0)** with **EntityBrush** onto

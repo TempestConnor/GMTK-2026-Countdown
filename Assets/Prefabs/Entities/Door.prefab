@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2422928938803609677}
   - component: {fileID: 8746649993719443239}
   - component: {fileID: 1565196382948474462}
+  - component: {fileID: 4817265039152837461}
   m_Layer: 6
   m_Name: Door
   m_TagString: Untagged
@@ -119,6 +120,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KillsOnPenetration
   penetrationTolerance: 0.03
+--- !u!114 &4817265039152837461
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7652137312916788178}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 789cebfd161b47cfaca6c2ffa4e91c40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoorWires
+  dotSprite: {fileID: 21300000, guid: b34326c181d08584cb44e5c174f3534b, type: 3}
+  dotSize: 0.15
+  dotSpacing: 0.4
+  activeColor: {r: 1, g: 1, b: 1, a: 1}
+  inactiveColor: {r: 1, g: 0, b: 0, a: 1}
+  sortingOrder: 3
+  terrainStepCost: 1
+  airStepCost: 4
+  turnCost: 3
+  searchMargin: 8
 --- !u!1 &8502000321989063174
 GameObject:
   m_ObjectHideFlags: 0

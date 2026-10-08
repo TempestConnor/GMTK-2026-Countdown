@@ -42,6 +42,9 @@ public class Door : MonoBehaviour
     [SerializeField] private bool _isOpen;
     public bool isOpen => _isOpen;
 
+    public DoorSwitchCondition Condition => condition;
+    public IReadOnlyList<Switch> Switches => switches;
+
     private BoxCollider2D _collider;
 
     private void OnValidate()
