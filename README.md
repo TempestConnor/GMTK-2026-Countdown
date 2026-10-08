@@ -168,8 +168,8 @@ Validation scripts in `Tools/Validation/`:
 | `Assets/Palettes/` | Tile Palette prefabs and brushes used to paint |
 | `Assets/Prefabs/Level/LevelTemplate.prefab` | Reusable `Grid → Ground, Entities` skeleton every level is built from |
 | `Assets/Prefabs/Entities/` | Enemy/hazard/pickup prefabs (create this folder as you add them) |
-| `Assets/Scenes/Levels/` | Starting-room scenes for campaign levels |
-| `Assets/Scenes/Rooms/` | Additional room scenes and the paired room examples |
+| `Assets/Scenes/LevelXX/` | One folder per level: its starting-room scene plus all of its room scenes |
+| `Assets/Scenes/RoomTemplate.unity` | Starting point for new room scenes |
 
 Editing `LevelTemplate.prefab` (e.g. adding a new tilemap layer) updates every
 level built from it, since each level's `Level` object is a prefab instance,
@@ -217,7 +217,10 @@ color tint (brown vs. gray) on the Tile asset. When real art arrives:
 ## Creating a new level
 
 1. `File → New Scene → Lit 2D Scene` (gives you a Camera + Global Light 2D
-   for free) and save it into `Assets/Scenes/Levels/` (e.g. `Level_02.unity`).
+   for free) and save it into a new `Assets/Scenes/LevelXX/` folder (e.g. `Level02/Level_02.unity`).
+   Put that level's other rooms in the same folder: the RoomTransition
+   Destination dropdown lists rooms from the doorway's own folder
+   (choose **Other folder...** to link across levels).
 2. Drag `Assets/Prefabs/Level/LevelTemplate.prefab` into the scene.
 3. Add the new scene to Build Settings (`File → Build Settings → Add Open
    Scenes`, or `manage_build(action="scenes")` if scripting it).
@@ -356,9 +359,96 @@ easy to snap-paint:
   `Spike` spans [14,15], after one empty column.
   `RoomTransition` spans [16,17], after one empty column.
   `SafeBox` spans [18,20] (2 wide, root at x=18), after one empty column.
-  The next entity added should start at x=21,
+  `TutorialArrow` spans [21,24] (default 3-wide straight arrow), then
+  `TutorialKey` spans [25,26] (1-wide keycap), each after one empty column.
+  The next entity added should start at x=27,
   and so on — always start at
   `(previous entity's right edge + 1)`.
+
+### Tutorial hints
+
+Tutorials are painted onto the level as decorative entities with no colliders, unaffected
+by planes and lighting. Paint them with `EntityBrush` onto **Level > Entities**:
+**TutorialArrow** from `(21, 3, 0)` and **TutorialKey** from `(25, 3, 0)`. Both draw
+above Background/Ground (Default sorting layer, order 1–2) and below the player.
+
+- **TutorialArrow**: the tail starts at the painted cell's center. **End** is the
+  tip offset in cells, and **Arc Height** bows the stroke upward into a jump arc
+  (0 = straight). With a placed arrow selected, drag the yellow square to move the
+  tip (half-cell snap) and the dot to change the arc (quarter-cell snap).
+- **TutorialKey**: a 1-cell-tall keycap that widens in whole cells to fit its label,
+  growing right from the painted cell. Its label comes from **Action** (and
+  **Composite Part**, e.g. `left`/`right` for Move) in `playerActions.inputactions`,
+  so it follows binding changes. **Label Override** shows custom text, and turning
+  off **Show Keycap** draws a plain word (e.g. "Grab"). **Label Scale** 0.75 fits
+  SPACE in a 2-cell cap.
+
+Color and stroke width are on the prefabs; instances inherit them unless overridden.
+Labels use TextMeshPro (`Assets/TextMesh Pro`, essential resources).
+`Tools/Validation/SetupTutorialHints.cs` rebuilds the prefabs/palette entries and the
+Level01 hints (JumpTutorial, GrabWallJumpTutorial); `ValidateTutorialHints.cs` checks
+palette connections, EntityBrush painting, labels, and keycap widths.
+
+### On-screen tutorial prompts
+
+For instructions that are hard to paint into the level (e.g. banish), trigger zones show
+text on the player's screen. These zones are **not** on `EntityPalette`; drag
+`Assets/Prefabs/Tutorial/TutorialPromptZone.prefab` and `TutorialDismissZone.prefab` into
+the room (e.g. under **Level > Entities**). Both have a bottom-left root and an **Area
+Size** in cells, fire once per room load when the player enters on either plane, and
+draw Scene-view gizmos (yellow = prompt with its text, red = dismiss with lines to its prompts).
+
+- **TutorialPromptZone**: **Text** is shown on entry. **Duration** is real-time seconds
+  on screen after fading in; `0` keeps it up until completed or dismissed.
+  - **Delay**: real-time seconds between entering and the prompt queuing (e.g. a hint
+    that appears only if the player is still stuck).
+  - **Complete Action** / **Complete Hold Time**: an action from `playerActions.inputactions`
+    (e.g. `Aim`) that completes the prompt once held that long (`0` = a press).
+  - **Then Show**: prompts shown when this one completes by its action or duration
+    (not when dismissed), for step-by-step instructions.
+  - **Replaces**: prompts dismissed when this one is triggered, so it does not wait behind them.
+  - **Show On Banish**: also shown when the player's banish catches something (themselves
+    included), anywhere in the room (`playerController2.BanishFired`).
+  - **Show After Death**: shown when the room reloads because the player died in it
+    (`RoomTravel.ArrivedByRespawn`), queued ahead of prompts at the spawn point.
+  - **Show On Enter** off: the area is ignored; only the options above, **Then Show** or a
+    trigger zone show it.
+- **TutorialDismissZone**: entering fades out the listed **Prompts** (or drops them if
+  still queued, and stops them showing later). An empty list fades out whichever prompt
+  is currently on screen.
+- **TutorialTriggerZone** (blue): entering shows the listed **Prompts**, an extra way in
+  for a prompt. Each prompt still shows at most once per room load.
+
+Every zone has a **Plane** filter: **Either** (default), **A** or **B**. A filtered zone
+also fires if the player swaps onto that plane while already inside it. Gizmos prefix
+filtered zones with `[A]`/`[B]`.
+
+Example: Level01_BanishTutorial1 (`Tools/Validation/SetupBanishTutorial1Prompts.cs` places
+it, `ValidateBanishTutorial1Play.cs` checks it in Play mode). The Aim prompt chains to the
+Banish prompt, the first successful banish shows the Return prompt that replaces both (zone B
+just dismisses them), the ledge zone shows "BANISH YOURSELF" after a 30 s delay, and dying shows
+"Slamming your face into a wall kills you" on respawn.
+
+Only one prompt shows at a time; a prompt triggered while another is up waits for it.
+Text markup:
+
+| Markup | Result |
+|---|---|
+| `[RIGHT_CLICK]` | Button prompt "RIGHT CLICK" (underscores become spaces) |
+| `[@Aim]`, `[@Move/left]` | Button prompt with that action's current key/mouse binding |
+| `~text~` | Spooky: tinted, and each letter wiggles |
+| `\~`, `\[`, `\\` | Literal character |
+
+Example: `Hold [RIGHT_CLICK] to Aim, Press [LEFT_CLICK] to Banish`.
+
+The display is `Assets/Resources/TutorialPrompts.prefab`, created on demand in the
+current room, so prompts and the queue reset on room travel and death (a respawn shows
+the room's prompts again). Edit that prefab to restyle: text position/font/size on
+**Prompt > Text**, and fade times, the button-prompt rich-text format, spooky colour and
+wiggle strength on the root's `TutorialPrompts` component. Timing uses unscaled time, so
+the aim slow-motion does not stretch it. Code can also call `TutorialPrompts.Show/Dismiss`.
+`Tools/Validation/SetupTutorialPrompts.cs` builds missing prefabs (display and the three zones);
+`ValidateTutorialPrompts.cs` checks markup, prefab wiring and that the zones stay off the palette.
 
 ### Pushable objects
 

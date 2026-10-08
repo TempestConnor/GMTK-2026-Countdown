@@ -13,7 +13,7 @@ public class LevelCatalogEditor : Editor
         EditorGUILayout.HelpBox("Order this list to set progression. Keep IDs stable. Scene paths must be included in the build.", MessageType.Info);
         if (GUILayout.Button("Add level scene"))
         {
-            string path = EditorUtility.OpenFilePanel("Choose level scene", Application.dataPath + "/Scenes/Levels", "unity");
+            string path = EditorUtility.OpenFilePanel("Choose level scene", Application.dataPath + "/Scenes", "unity");
             if (string.IsNullOrEmpty(path)) return;
             path = FileUtil.GetProjectRelativePath(path);
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) == null) return;

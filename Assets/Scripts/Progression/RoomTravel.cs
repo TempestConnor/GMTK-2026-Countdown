@@ -6,6 +6,8 @@ using UnityEngine.SceneManagement;
 public static class RoomTravel
 {
     public static bool IsLoading { get; private set; }
+    /// <summary>True when the current room was loaded because the player died in it.</summary>
+    public static bool ArrivedByRespawn { get; private set; }
     private static string entranceScene;
     private static string entranceId;
     private static playerController2.BanishState entranceBanish;
@@ -31,7 +33,7 @@ public static class RoomTravel
         arrivalBody = null;
         sourceLock?.Dispose();
         sourceLock = null;
-        IsLoading = restoreEntrance = false;
+        IsLoading = restoreEntrance = ArrivedByRespawn = false;
         entranceScene = entranceId = null;
         entranceBanish = default;
     }
@@ -54,7 +56,11 @@ public static class RoomTravel
         entranceScene = destinationScene;
         entranceId = destinationZone;
         entranceBanish = player.GetComponent<playerController2>().CaptureBanishState();
-        if (BeginLoad(player, destinationScene, true)) return true;
+        if (BeginLoad(player, destinationScene, true))
+        {
+            ArrivedByRespawn = false;
+            return true;
+        }
         entranceScene = previousScene;
         entranceId = previousId;
         entranceBanish = previousBanish;
@@ -66,7 +72,7 @@ public static class RoomTravel
         if (IsLoading) return;
         // Death ends banish; only room travel carries the active ability across scenes.
         entranceBanish = default;
-        BeginLoad(player, player.gameObject.scene.path, false);
+        if (BeginLoad(player, player.gameObject.scene.path, false)) ArrivedByRespawn = true;
     }
 
     private static bool BeginLoad(PlayerLife player, string path, bool transition)

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -11,6 +12,8 @@ public sealed class RoomTransitionEditor : Editor
     private static readonly Dictionary<string, string[]> closedSceneZones = new Dictionary<string, string[]>();
 
     static RoomTransitionEditor() => EditorSceneManager.sceneSaved += _ => closedSceneZones.Clear();
+
+    private bool pickAnyFolder;
 
     public override void OnInspectorGUI()
     {
@@ -35,9 +38,7 @@ public sealed class RoomTransitionEditor : Editor
 
         EditorGUI.showMixedValue = scenePath.hasMultipleDifferentValues;
         var scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath.stringValue);
-        EditorGUI.BeginChangeCheck();
-        scene = (SceneAsset)EditorGUILayout.ObjectField("Scene", scene, typeof(SceneAsset), false);
-        if (EditorGUI.EndChangeCheck())
+        if (DrawScenePicker(ref scene))
         {
             scenePath.stringValue = scene != null ? AssetDatabase.GetAssetPath(scene) : "";
             var ids = scene != null ? ZoneIds(scenePath.stringValue) : new string[0];
@@ -59,6 +60,54 @@ public sealed class RoomTransitionEditor : Editor
         int index = EditorGUILayout.Popup(new GUIContent("Zone"), options.IndexOf(zone.stringValue), labels);
         EditorGUI.showMixedValue = false;
         if (index >= 0) zone.stringValue = options[index];
+    }
+
+    /// <summary>
+    /// Lists the rooms in this scene's folder (one folder per level); "Other folder..." falls back to
+    /// the project-wide scene picker for cross-level links. Returns true when the selection changed.
+    /// </summary>
+    private bool DrawScenePicker(ref SceneAsset scene)
+    {
+        string ownPath = ((RoomTransition)target).gameObject.scene.path;
+        if (string.IsNullOrEmpty(ownPath) || pickAnyFolder)
+        {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUI.BeginChangeCheck();
+            scene = (SceneAsset)EditorGUILayout.ObjectField("Scene", scene, typeof(SceneAsset), false);
+            bool changed = EditorGUI.EndChangeCheck();
+            if (!string.IsNullOrEmpty(ownPath) && GUILayout.Button("Same folder", EditorStyles.miniButton, GUILayout.Width(80)))
+                pickAnyFolder = false;
+            EditorGUILayout.EndHorizontal();
+            if (changed) pickAnyFolder = false;
+            return changed;
+        }
+
+        string folder = Path.GetDirectoryName(ownPath).Replace('\\', '/');
+        var paths = AssetDatabase.FindAssets("t:Scene", new[] { folder })
+            .Select(AssetDatabase.GUIDToAssetPath)
+            .Where(p => Path.GetDirectoryName(p).Replace('\\', '/') == folder && p != ownPath)
+            .OrderBy(p => p, System.StringComparer.Ordinal)
+            .ToList();
+        var labels = paths.Select(p => Path.GetFileNameWithoutExtension(p)).ToList();
+        string current = scene != null ? AssetDatabase.GetAssetPath(scene) : "";
+        if (current != "" && !paths.Contains(current))
+        {
+            paths.Insert(0, current);
+            labels.Insert(0, Path.GetFileNameWithoutExtension(current) + " (" + Path.GetFileName(Path.GetDirectoryName(current)) + ")");
+        }
+        paths.Insert(0, "");
+        labels.Insert(0, "(none)");
+        labels.Add("Other folder...");
+
+        int index = EditorGUILayout.Popup("Scene", paths.IndexOf(current), labels.ToArray());
+        if (index == labels.Count - 1)
+        {
+            pickAnyFolder = true;
+            return false;
+        }
+        if (index < 0 || paths[index] == current) return false;
+        scene = AssetDatabase.LoadAssetAtPath<SceneAsset>(paths[index]);
+        return true;
     }
 
     private static string[] ZoneIds(string scenePath)

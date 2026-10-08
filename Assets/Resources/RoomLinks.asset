@@ -13,15 +13,31 @@ MonoBehaviour:
   m_Name: RoomLinks
   m_EditorClassIdentifier: Assembly-CSharp::RoomLinks
   links:
-  - fromScene: Assets/Scenes/Levels/Level_02.unity
+  - fromScene: Assets/Scenes/Level01/Level01_BanishTutorial1.unity
+    fromZone: left
+    toScene: Assets/Scenes/Level01/Level01_GrabWallJumpTutorial.unity
+    toZone: right
+  - fromScene: Assets/Scenes/Level01/Level01_BanishTutorial1.unity
+    fromZone: right
+    toScene: Assets/Scenes/Level01/Level01_BanishTutorial2.unity
+    toZone: left
+  - fromScene: Assets/Scenes/Level01/Level01_JumpTutorial.unity
+    fromZone: right
+    toScene: Assets/Scenes/Level01/Level01_GrabWallJumpTutorial.unity
+    toZone: left
+  - fromScene: Assets/Scenes/Level02/Level_02.unity
     fromZone: start
-    toScene: Assets/Scenes/Rooms/Level_02_Room_02.unity
+    toScene: Assets/Scenes/Level02/Level_02_Room_02.unity
     toZone: left
-  - fromScene: Assets/Scenes/Rooms/Level_02_Room_02.unity
+  - fromScene: Assets/Scenes/Level02/Level_02_Room_02.unity
     fromZone: right
-    toScene: Assets/Scenes/Rooms/Level_02_Room_SafeTileIntro.unity
+    toScene: Assets/Scenes/Level02/Level_02_Room_SafeTileIntro.unity
     toZone: left
-  - fromScene: Assets/Scenes/Rooms/Level_02_Room_SafeTileIntro.unity
+  - fromScene: Assets/Scenes/Level02/Level_02_Room_SafeBoxIntro.unity
+    fromZone: up
+    toScene: Assets/Scenes/Level02/Level_02_Room_Ending.unity
+    toZone: down
+  - fromScene: Assets/Scenes/Level02/Level_02_Room_SafeTileIntro.unity
     fromZone: right
-    toScene: Assets/Scenes/Rooms/Level_02_Room_SafeBoxIntro.unity
+    toScene: Assets/Scenes/Level02/Level_02_Room_SafeBoxIntro.unity
     toZone: left

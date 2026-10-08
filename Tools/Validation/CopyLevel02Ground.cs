@@ -10,7 +10,7 @@ public static class CopyLevel02Ground
     public static string Main()
     {
         var scene = SceneManager.GetActiveScene();
-        if (EditorApplication.isPlayingOrWillChangePlaymode || scene.path != "Assets/Scenes/Levels/Level_02.unity")
+        if (EditorApplication.isPlayingOrWillChangePlaymode || scene.path != "Assets/Scenes/Level02/Level_02.unity")
             throw new Exception("Expected Level_02 open in Edit mode.");
         Tilemap source = null, destination = null;
         foreach (var root in scene.GetRootGameObjects())

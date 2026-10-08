@@ -15,4 +15,4 @@ MonoBehaviour:
   levels:
   - id: level-01
     title: First Steps
-    scenePath: Assets/Scenes/Levels/Level_01.unity
+    scenePath: Assets/Scenes/Level01/Level_01.unity

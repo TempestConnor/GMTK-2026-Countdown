@@ -75,6 +75,9 @@ public partial class playerController2
 
     // True while a volley is out on plane B awaiting its return timer or an early recall.
     private bool isBanished;
+
+    /// <summary>Raised after a banish catches at least one member (the player included).</summary>
+    public static event System.Action<playerController2> BanishFired;
     private float banishElapsed;
     private readonly List<Banishable> banishedMembers = new List<Banishable>();
     private Coroutine returnCoroutine;
@@ -222,6 +225,7 @@ public partial class playerController2
         if (countdownIndicator != null) countdownIndicator.Show();
         returnCoroutine = StartCoroutine(ReturnAfterDelay(banishStats.returnDelay));
         CheckDamageablePenetration();
+        BanishFired?.Invoke(this);
     }
 
     private IEnumerator ReturnAfterDelay(float remaining)
