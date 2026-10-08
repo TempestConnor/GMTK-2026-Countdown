@@ -78,20 +78,11 @@ public static class SetupRooms
         // An isolated pair demonstrates authoring and enables real scene-load validation.
         // Existing level scenes and progression entries are not rewritten.
         if (!AssetDatabase.IsValidFolder("Assets/Scenes/Rooms")) AssetDatabase.CreateFolder("Assets/Scenes", "Rooms");
-        if (!AssetDatabase.IsValidFolder("Assets/Data/RoomConnections")) AssetDatabase.CreateFolder("Assets/Data", "RoomConnections");
         const string a = "Assets/Scenes/Rooms/ExampleRoom_A.unity";
         const string b = "Assets/Scenes/Rooms/ExampleRoom_B.unity";
-        const string connectionPath = "Assets/Data/RoomConnections/ExampleRoomConnection.asset";
-        var connection = AssetDatabase.LoadAssetAtPath<RoomConnection>(connectionPath);
-        if (connection == null)
-        {
-            connection = ScriptableObject.CreateInstance<RoomConnection>();
-            connection.a.scenePath = a; connection.a.zoneId = "east";
-            connection.b.scenePath = b; connection.b.zoneId = "west";
-            AssetDatabase.CreateAsset(connection, connectionPath);
-        }
-        CreateRoom(a, true, connection, prefab);
-        CreateRoom(b, false, connection, prefab);
+        // Only A declares the link; RoomLinks resolves B -> A automatically.
+        CreateRoom(b, false, null, prefab);
+        CreateRoom(a, true, b, prefab);
         var builds = new List<EditorBuildSettingsScene>(EditorBuildSettings.scenes);
         foreach (string scenePath in new[] { a, b })
         {
@@ -104,7 +95,7 @@ public static class SetupRooms
         return "Player lock/cancellation attached; connected RoomTransition palette entry at (" + nextX + ",3,0); paired example rooms created and included in build.";
     }
 
-    private static void CreateRoom(string path, bool first, RoomConnection connection, GameObject prefab)
+    private static void CreateRoom(string path, bool first, string destination, GameObject prefab)
     {
         if (AssetDatabase.LoadAssetAtPath<SceneAsset>(path) != null)
         {
@@ -144,8 +135,8 @@ public static class SetupRooms
             var zoneObject = (GameObject)PrefabUtility.InstantiatePrefab(prefab, level.transform.Find("Entities"));
             zoneObject.transform.localPosition = new Vector3(first ? 10 : -11, -2, 0);
             var zone = zoneObject.GetComponent<RoomTransition>();
-            zone.connection = connection;
             zone.zoneId = first ? "east" : "west";
+            if (destination != null) { zone.destinationScene = destination; zone.destinationZone = "west"; }
             zone.arrival.position = new Vector3(first ? 7 : -7, -1, 0);
             PrefabUtility.RecordPrefabInstancePropertyModifications(zone);
             PrefabUtility.RecordPrefabInstancePropertyModifications(zone.transform);

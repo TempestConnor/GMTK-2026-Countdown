@@ -8,7 +8,6 @@ public static class RoomTravel
     public static bool IsLoading { get; private set; }
     private static string entranceScene;
     private static string entranceId;
-    private static RoomConnection entranceConnection;
     private static playerController2.BanishState entranceBanish;
     private static bool restoreEntrance;
     private static IDisposable sourceLock;
@@ -34,33 +33,30 @@ public static class RoomTravel
         sourceLock = null;
         IsLoading = restoreEntrance = false;
         entranceScene = entranceId = null;
-        entranceConnection = null;
         entranceBanish = default;
     }
 
     public static bool TryTransition(RoomTransition zone, PlayerLife player)
     {
         if (IsLoading || !player.isAlive || player.gameObject.scene != zone.gameObject.scene) return false;
-        if (zone.connection == null || zone.arrival == null ||
-            !zone.connection.TryGetDestination(zone.gameObject.scene.path, zone.zoneId, out var destination) ||
-            !Application.CanStreamedLevelBeLoaded(destination.scenePath))
+        var links = RoomLinks.Instance;
+        if (links == null || zone.arrival == null ||
+            !links.TryGetDestination(zone.gameObject.scene.path, zone.zoneId, out var destinationScene, out var destinationZone) ||
+            !Application.CanStreamedLevelBeLoaded(destinationScene))
         {
-            Debug.LogError("Room transition needs a valid paired connection, arrival marker and enabled destination build scene.", zone);
+            Debug.LogError("Room transition needs a destination (on this or the paired zone), an arrival marker and an enabled destination build scene.", zone);
             return false;
         }
 
         var previousScene = entranceScene;
         var previousId = entranceId;
-        var previousConnection = entranceConnection;
         var previousBanish = entranceBanish;
-        entranceScene = destination.scenePath;
-        entranceId = destination.zoneId;
-        entranceConnection = zone.connection;
+        entranceScene = destinationScene;
+        entranceId = destinationZone;
         entranceBanish = player.GetComponent<playerController2>().CaptureBanishState();
-        if (BeginLoad(player, destination.scenePath, true)) return true;
+        if (BeginLoad(player, destinationScene, true)) return true;
         entranceScene = previousScene;
         entranceId = previousId;
-        entranceConnection = previousConnection;
         entranceBanish = previousBanish;
         return false;
     }
@@ -166,7 +162,7 @@ public static class RoomTravel
             RoomTransition endpoint = null;
             int matches = 0;
             foreach (var zone in UnityEngine.Object.FindObjectsByType<RoomTransition>())
-                if (zone.gameObject.scene == scene && zone.zoneId == entranceId && zone.connection == entranceConnection)
+                if (zone.gameObject.scene == scene && zone.zoneId == entranceId)
                 { endpoint = zone; matches++; }
             if (matches == 1 && endpoint.arrival != null)
             {
@@ -188,7 +184,6 @@ public static class RoomTravel
             {
                 Debug.LogError("Room entrance is missing, duplicated or has no arrival marker; using the authored player spawn.");
                 entranceScene = entranceId = null;
-                entranceConnection = null;
             }
         }
         if (player == null) Debug.LogError("Loaded room has no active PlayerLife.");

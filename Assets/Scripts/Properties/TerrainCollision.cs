@@ -117,6 +117,24 @@ public sealed class TerrainCollision : MonoBehaviour
         }
         safeTiles.ProcessTilemapChanges();
         safeOutline.GenerateGeometry();
+        // Bake independently editable player sections. Keep the composite outline as
+        // non-player support, so opening a passage never drops a box through the floor.
+        var safeCells = new HashSet<Vector3Int>(cells);
+        var boundaries = new List<SafeRegion.Boundary>();
+        Vector3 cellSize = source.layoutGrid.cellSize;
+        foreach (var cell in cells)
+        {
+            Vector2 a = safeMap.transform.InverseTransformPoint(source.CellToWorld(cell));
+            Vector2 b = a + (Vector2)cellSize;
+            if (!safeCells.Contains(cell + Vector3Int.left)) boundaries.Add(new SafeRegion.Boundary(a, new Vector2(a.x, b.y), Vector2.left));
+            if (!safeCells.Contains(cell + Vector3Int.right)) boundaries.Add(new SafeRegion.Boundary(new Vector2(b.x, a.y), b, Vector2.right));
+            if (!safeCells.Contains(cell + Vector3Int.down)) boundaries.Add(new SafeRegion.Boundary(a, new Vector2(b.x, a.y), Vector2.down));
+            if (!safeCells.Contains(cell + Vector3Int.up)) boundaries.Add(new SafeRegion.Boundary(new Vector2(a.x, b.y), b, Vector2.up));
+        }
+        var region = safeMap.GetComponent<SafeRegion>();
+        if (region == null) region = safeMap.gameObject.AddComponent<SafeRegion>();
+        // The edge carrier sits beside Ground, outside both terrain composites (see SafeRegion.Bake).
+        changed |= region.Bake(safeOutline, boundaries.ToArray(), false, transform.parent != null ? transform.parent : null);
         // Filled lethal cells retain their boundary even beside a safe region.
         sourceTiles.ProcessTilemapChanges();
         solid.GenerateGeometry();

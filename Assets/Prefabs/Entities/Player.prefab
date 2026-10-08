@@ -97,7 +97,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -125,7 +125,7 @@ LineRenderer:
   - {x: 0, y: 0, z: 1}
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 0.05
+    widthMultiplier: 0.1
     widthCurve:
       serializedVersion: 2
       m_Curve:
@@ -194,9 +194,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BanishReticule
   outline: {fileID: 0}
-  armingColor: {r: 1, g: 1, b: 1, a: 1}
-  armedColor: {r: 0, g: 1, b: 0, a: 1}
+  armingColor: {r: 1, g: 0.3, b: 0.05, a: 1}
+  armedColor: {r: 1, g: 0.84, b: 0, a: 1}
+  outlineWidth: 0.1
   outlineSegments: 48
+  tickInner: 0.45
+  tickOuter: 1.35
 --- !u!50 &9097138874221090806
 Rigidbody2D:
   serializedVersion: 5
@@ -283,7 +286,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -735,6 +738,7 @@ MonoBehaviour:
   reticule: {fileID: 1573796816095544331}
   countdownIndicator: {fileID: 3308873364288106839}
   previewStats: {fileID: 11400000, guid: dba4bf2ab29e7aa4996fc824d1e4f4bb, type: 2}
+  grabReach: 0.35
   stats: {fileID: 11400000, guid: 3f3583a7ddd48a3468fabf05aa9410e0, type: 2}
   canwalk: 1
   originalGravity: 3
@@ -771,6 +775,22 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_ActionEvents:
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 3229964198797885318}
+        m_TargetAssemblyTypeName: playerController2, Assembly-CSharp
+        m_MethodName: onInteract
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 8f0e6016-d4a8-41df-a3ff-d336c1d52466
+    m_ActionName: Player/Interact
   - m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 3229964198797885318}
@@ -1045,9 +1065,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAudio
   source: {fileID: 7095628028015944092}
-  banishArmClip: {fileID: 0}
-  banishFireClip: {fileID: 0}
-  banishReturnClip: {fileID: 0}
+  banishArmClip: {fileID: 8300000, guid: 0301cbd054d34634e8f70494698f39f6, type: 3}
+  banishFireClip: {fileID: 8300000, guid: 9a95c19d25a69244eb0dcc6bfe017824, type: 3}
+  banishReturnClip: {fileID: 8300000, guid: fedf6e3507f72874b96a39dca4df7719, type: 3}
+  deathClip: {fileID: 8300000, guid: 256e8a0b0325f354797cb397ac1d33fb, type: 3}
+  grabClip: {fileID: 8300000, guid: 656e05b8d2670d043a5116d22124c179, type: 3}
 --- !u!114 &5799936137948354972
 MonoBehaviour:
   m_ObjectHideFlags: 0

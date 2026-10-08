@@ -34,6 +34,7 @@ public partial class playerController2
             animator.SetTrigger("jump");
             setGravityScale(originalGravity);
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, stats.jumpImpulse * GravityUpSign);
+            JumpGrabbedBody();
             Debug.Log("has jumped");
         }
 
@@ -67,6 +68,7 @@ public partial class playerController2
 
 
         rb.linearVelocity = new Vector2(wallJumpDirection.x * stats.wallJumpBounceForce, stats.jumpImpulse * GravityUpSign);
+        JumpGrabbedBody();
 
         yield return new WaitForSeconds(stats.wallJumpBounceDuration);
         wallJumpCoroutine = null;

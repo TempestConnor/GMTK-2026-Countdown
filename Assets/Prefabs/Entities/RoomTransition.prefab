@@ -124,8 +124,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c5a1504e3c4d3154cbe8ae458e1f1b50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RoomTransition
-  connection: {fileID: 0}
   zoneId: 
+  destinationScene: 
+  destinationZone: 
   areaSize: {x: 1, y: 4}
   arrival: {fileID: 2110245553165369555}
   paletteVisual: {fileID: 6310127263113215514}

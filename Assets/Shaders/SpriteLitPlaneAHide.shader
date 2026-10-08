@@ -12,6 +12,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
         [HideInInspector] _RendererColor("RendererColor", Color) = (1,1,1,1)
         [HideInInspector] _AlphaTex("External Alpha", 2D) = "white" {}
         [HideInInspector] _EnableExternalAlpha("Enable External Alpha", Float) = 0
+        [HideInInspector] _SafeSeamRole("Safe Seam Role", Float) = 0
+        [HideInInspector] _SafeSeamPlane("Safe Seam Plane", Float) = 0
     }
 
     // Plane A geometry using this shader goes transparent inside the plane-preview circle (hold E),
@@ -70,11 +72,13 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
             };
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Lit2DCommon.hlsl"
+            #include "SafeSeams.hlsl"
 
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
-            CBUFFER_END
+                half _SafeSeamRole;
+                half _SafeSeamPlane;            CBUFFER_END
 
             Varyings LitVertex(Attributes input)
             {
@@ -91,7 +95,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
 
             half4 LitFragment(Varyings input) : SV_Target
             {
-                half4 col = CommonLitFragment(input, input.color);
+                half4 color = ApplySafeSeam(input.color, input.uv, input.previewPositionWS.xy, _SafeSeamRole, _SafeSeamPlane);
+                half4 col = CommonLitFragment(input, color);
                 col.a *= ComputeHideMask(input.previewPositionWS);
                 return col;
             }
@@ -130,7 +135,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START( UnityPerMaterial )
                 half4 _Color;
-            CBUFFER_END
+                half _SafeSeamRole;
+                half _SafeSeamPlane;            CBUFFER_END
 
             Varyings NormalsRenderingVertex(Attributes input)
             {
@@ -187,7 +193,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
-            CBUFFER_END
+                half _SafeSeamRole;
+                half _SafeSeamPlane;            CBUFFER_END
 
             Varyings UnlitVertex(Attributes input)
             {

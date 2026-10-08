@@ -50,7 +50,7 @@ public class DamageablePenetrationCheck : MonoBehaviour
 
     public void CheckNow()
     {
-        // Death returns the banished group; that nested check must do nothing.
+        // Dead objects stay put (e.g. during the player's death freeze); never re-kill them.
         if (life == null) life = GetComponent<Damageable>();
         if (!isActiveAndEnabled || life == null || !life.isActiveAndEnabled || life.IsDead) return;
         if (TryGetLethalOverlap(out _)) life.Kill();
@@ -89,6 +89,8 @@ public class DamageablePenetrationCheck : MonoBehaviour
                 continue;
             }
 
+            // Safe regions (SafeBox and its edges) are nonlethal even with a lethal component above them.
+            if (other.GetComponentInParent<SafeRegion>() != null) continue;
             var hazard = other.GetComponentInParent<KillsOnPenetration>();
             if (hazard == null || !hazard.isActiveAndEnabled) continue;
 

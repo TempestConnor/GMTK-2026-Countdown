@@ -159,6 +159,9 @@ public partial class playerController2 : MonoBehaviour
     {
         if (!playerLife.isAlive || RoomTravel.IsLoading) return;
 
+        // Release invalid/plane-separated grips before refreshing wall contacts.
+        UpdateGrab();
+
         touchingDirection.RefreshContacts();
         animator.SetFloat("yVelocity", rb.linearVelocity.y * GravityUpSign);
 
@@ -241,6 +244,7 @@ public partial class playerController2 : MonoBehaviour
 
 
         }
+        UpdateGrab();
     }
 
     protected void setGravityScale(float scale)

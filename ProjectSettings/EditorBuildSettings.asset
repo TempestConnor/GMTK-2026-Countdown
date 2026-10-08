@@ -26,5 +26,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Rooms/Level_02_Room_02.unity
     guid: 110696fc94b22194388f52daf813672e
+  - enabled: 1
+    path: Assets/Scenes/Rooms/Level_02_Room_SafeTileIntro.unity
+    guid: d15de9f8e7f0424408ff4038c7852c35
+  - enabled: 1
+    path: Assets/Scenes/Rooms/Level_02_Room_SafeBoxIntro.unity
+    guid: 34933f793eb625d499d8c0cc549804ba
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

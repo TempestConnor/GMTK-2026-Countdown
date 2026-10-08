@@ -81,6 +81,7 @@ public partial class playerController2
 
     private void OnEnable()
     {
+        SafePlayerCollision.Register(this);
         UpdateCameraVisibility(planeMember.CurrentPlane);
     }
 
@@ -268,6 +269,7 @@ public partial class playerController2
 
     private void CheckDamageablePenetration()
     {
+        SafeBoundarySystem.RefreshNow();
         // Wait until the entire volley is on its final plane before testing overlap.
         foreach (var check in FindObjectsByType<DamageablePenetrationCheck>(FindObjectsSortMode.None))
             if (check != null) check.CheckNow();

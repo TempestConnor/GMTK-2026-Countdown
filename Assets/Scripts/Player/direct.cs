@@ -20,9 +20,9 @@ public class direct : MonoBehaviour
 
     Animator animator;
 
-    RaycastHit2D[] groundHits = new RaycastHit2D[5];
-    RaycastHit2D[] wallHits = new RaycastHit2D[5];
-    RaycastHit2D[] ceilingHits = new RaycastHit2D[5];
+    readonly List<RaycastHit2D> groundHits = new List<RaycastHit2D>();
+    readonly List<RaycastHit2D> wallHits = new List<RaycastHit2D>();
+    readonly List<RaycastHit2D> ceilingHits = new List<RaycastHit2D>();
 
     [SerializeField]
     private bool _isGrounded;
@@ -99,8 +99,28 @@ public class direct : MonoBehaviour
     public void RefreshContacts()
     {
         if (touchingCol == null || player == null) return;
-        isGrounded = touchingCol.Cast(player.GravityDown, castFilter, groundHits, groundDistance) > 0;
-        isOnWall = touchingCol.Cast(wallCheckDirection, castFilter, wallHits, wallDistance) > 0;
-        isOnCeiling = touchingCol.Cast(-player.GravityDown, castFilter, ceilingHits, ceilingDistance) > 0;
+        touchingCol.Cast(player.GravityDown, castFilter, groundHits, groundDistance);
+        isGrounded = HasBlockingHit(groundHits);
+        int wallCount = touchingCol.Cast(wallCheckDirection, castFilter, wallHits, wallDistance);
+        isOnWall = false;
+        for (int i = 0; i < wallCount; i++)
+        {
+            if (!SafePlayerCollision.Blocks(touchingCol, wallHits[i].collider)) continue;
+            // Floor lips (e.g. a resting box sits a contact offset above the grid) are hit near the feet
+            // with an upward normal; only surfaces facing against the walk direction are walls.
+            if (Vector2.Dot(wallHits[i].normal, wallCheckDirection) > -0.5f) continue;
+            if (player.GrabbedBody != null && (wallHits[i].rigidbody == player.GrabbedBody ||
+                wallHits[i].collider.GetComponentInParent<Pushable>()?.Body == player.GrabbedBody)) continue;
+            isOnWall = true;
+            break;
+        }
+        touchingCol.Cast(-player.GravityDown, castFilter, ceilingHits, ceilingDistance);
+        isOnCeiling = HasBlockingHit(ceilingHits);
+    }
+
+    private bool HasBlockingHit(List<RaycastHit2D> hits)
+    {
+        foreach (var hit in hits) if (SafePlayerCollision.Blocks(touchingCol, hit.collider)) return true;
+        return false;
     }
 }

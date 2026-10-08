@@ -82,16 +82,21 @@ hidden during gameplay; Scene-view gizmos show the trigger and arrival marker.
 Transitions work on both player planes and cannot be banished.
 
 1. Give each placed zone a **Zone ID** unique within its room, such as `east`.
-2. Create **Game > Room Connection** in the Project window. Select both room
-   scenes and enter their zone IDs under Endpoint A and Endpoint B.
-3. Assign the same connection asset to both painted zones. This single pair
-   defines both travel directions.
-4. Move each zone's **Arrival** child to a safe player-root position inside its
+2. On **one** of the two doorways, pick the other room under **Destination >
+   Scene** and its doorway under **Zone**. Every link is two-way: the other
+   doorway links back automatically, and its inspector shows "Linked from …".
+   Setting the destination on both sides is allowed if they point at each other.
+3. Move each zone's **Arrival** child to a safe player-root position inside its
    room's camera, clear of terrain on both planes. Keep the root unrotated and
    unscaled; resize with Area Size. Make the trigger thick enough to catch dashes.
-5. Include the room scenes in the build and click **Validate paired zones** on
-   the connection asset after saving both scenes. Build validation also checks
-   saved zone IDs, matching connections, arrival markers, and player counts.
+4. Save the scene. Links live in the generated `Assets/Resources/RoomLinks.asset`,
+   refreshed on scene save, on entering Play (open scenes, including unsaved
+   edits) and before builds. Never edit it by hand.
+5. Include the room scenes in the build and run **Tools > Rooms > Rebuild and
+   Validate Links**. It rescans every scene under `Assets/Scenes` and reports
+   unlinked or doubly linked doorways, missing destinations, duplicate zone IDs,
+   missing arrival markers, player counts and build membership. Builds run the
+   same check and fail on errors.
 
 The camera death boundary is always **four world units (four tiles)** beyond
 each camera edge: **camera -> transition strip -> death boundary**. There is no
@@ -120,9 +125,9 @@ position with banish reset. Direct
 Play or starting a level uses the authored spawn. Re-entering rooms resets their
 objects; there is no cross-room puzzle-state persistence.
 
-`Assets/Scenes/Rooms/ExampleRoom_A.unity` and `ExampleRoom_B.unity` form a working
-standalone pair using `Assets/Data/RoomConnections/ExampleRoomConnection.asset`.
-They are included in the build for testing, but are not campaign catalog levels.
+`Tools/Validation/SetupRooms.cs` can generate `Assets/Scenes/Rooms/ExampleRoom_A.unity`
+and `ExampleRoom_B.unity`, a standalone pair where only A declares the link.
+The script adds them to the build for testing; they are not campaign catalog levels.
 Open A and walk right; open B and walk left. Existing levels are not split
 automatically.
 
@@ -148,7 +153,7 @@ coroutines and effects. No per-action list is needed in the death handler.
 Validation scripts in `Tools/Validation/`:
 
 - `ValidateRooms.cs`: prefab/palette connections, actual EntityBrush painting,
-  cancellation registry, paired saved-room validation, and catalog membership.
+  cancellation registry, two-way room-link resolution and validation, and catalog membership.
 - `RoomPlaySession.Start` / `.Stop`: enter the example room for testing and
   restore the previous play-start scene afterwards without replacing open scenes.
 - `ValidateRoomsPlay.cs`: run while playing ExampleRoom_A to exercise stacked
@@ -240,11 +245,21 @@ Ctrl+Z and leaves the scene unsaved for review. Editor scripts can also call
 
 ### Nonlethal solid terrain
 
-Choose the green `Tile_SafeWall` in `TerrainPalette` and paint onto
+Choose `Tile_SafeWall` in `TerrainPalette` and paint onto
 **Level > Ground** (plane A) or **Level > GroundB** (plane B), alongside lethal
 tiles. Select a tile asset and toggle **Kills On Penetration** to change its
 behavior everywhere it is painted. Ground and Platform are lethal; SafeWall is
 nonlethal. Their existing asset references and palette entries are preserved.
+
+Safe tiles draw as one hollow region: an outline matching the SafeBox (color and thickness)
+around the region's perimeter, with a plain translucent interior. Adjacent safe
+tiles join automatically as you paint or erase, and lethal tiles never join them.
+The SafeBox's diagonal stripes and corner brackets set it apart as movable; terrain
+has neither. The frames live in `Assets/Tiles/Sprites/SafeTileFrame.png`, a generated
+47-sprite atlas. To change the style, edit the constants in
+`SafeTileFrameGenerator.cs` and run **Tools > Level > Generate Safe Tile Frames**.
+That regenerates the atlas and wires it into every nonlethal `TerrainTile`. Don't
+edit the PNG by hand; the next regeneration overwrites it.
 
 Create new tiles with **Create > 2D > Tiles > Terrain Tile**. `TerrainTile` uses
 a full rectangular grid-cell collider and identity tile transform, matching this
@@ -340,9 +355,99 @@ easy to snap-paint:
   `GoalFlag` spans [7,8], gap, `GravityLaunchArea` spans [9,13].
   `Spike` spans [14,15], after one empty column.
   `RoomTransition` spans [16,17], after one empty column.
-  The next entity added should start at x=18,
+  `SafeBox` spans [18,20] (2 wide, root at x=18), after one empty column.
+  The next entity added should start at x=21,
   and so on — always start at
   `(previous entity's right edge + 1)`.
+
+### Pushable objects
+
+Add **Pushable** to an object's **Rigidbody2D root** with a solid Collider2D.
+Adding the property automatically adds a Rigidbody2D if needed; use **Dynamic**
+body type and keep it simulated. The existing **Box** prefab already has this
+property and retains its existing EntityPalette entry at **(-6, 3, 0)**.
+
+Face a nearby object and press **Interact (F)** to grab it. Move left/right to
+push or pull it, and jump to make both bodies jump. Press F again to release.
+The player's **Grab Reach** defaults to 0.35 units from its collider. Solid
+obstacles block grabbing; objects on a non-colliding plane cannot be grabbed.
+The binding lives in `Assets/Settings/playerActions.inputactions`, Player/Interact.
+
+Pushable locks horizontal movement while ungrabbed, so walking into a box does
+not move it. Grabbing unlocks X; releasing stops horizontal velocity and locks X
+again. Gravity and vertical movement remain active, including falling after an
+airborne release. Leave Y movement available for jumping; freeze rotation for
+upright boxes. A temporary physics joint maintains the initial grab offset while
+colliders continue to resolve obstacles. Dash, input locks, action cancellation,
+disabling either participant, and separation onto non-colliding planes release
+the grip. Death and room travel use the existing cancellation registry.
+
+`Tools/Validation/ValidatePushable.cs` checks prefab/input wiring and actual
+EntityBrush painting. `ValidatePushablePlay.cs` runs in Play mode using a temporary
+physics scene and virtual keyboard to check idle locking, F toggling, movement,
+jumping, cancellation, target disabling, and plane separation. It restores input
+update settings and removes its temporary scene/devices afterwards.
+
+### Safe Box
+
+Paint **SafeBox** from `EntityPalette` at **(18, 3, 0)** with `EntityBrush` onto
+**Level > Entities**. `Assets/Prefabs/Entities/SafeBox.prefab` is a prefab variant
+of **Box**: same 2x2 bottom-left footprint, Pushable grabbing, gravity, and
+banish/plane behavior. Its visual is two layers under **Visual**: the teal frame
+(`Assets/Tiles/Sprites/SafeBoxFrame.png`, border and corner brackets) over a
+translucent, diagonally striped **Fill** (`Assets/Tiles/Sprites/SafeBoxFill.png`),
+both drawn below the player. `Tools/Validation/SetupSafeBox.cs` regenerates both.
+Changes to Box still flow into the variant; edit SafeBox-only values on the variant.
+
+The box is hollow and nonlethal, like safe terrain: a player who phases inside can
+walk and jump within it, while its outer boundary blocks entry. It can be grabbed
+only from outside. Where a SafeBox touches safe terrain or another SafeBox on the
+same plane, the shared boundary opens on both sides. Partial edge contact opens
+only the shared span; corner-only contact opens nothing. Boundaries close again when
+objects separate, change plane, or are disabled or destroyed. If a boundary closes
+through the player, they are moved to the nearest clear pose (never into another
+obstacle) instead of being killed. Ordinary Box behavior is unchanged.
+
+Open boundaries also disappear visually in Play mode (`SafeSeams`). Along each open
+span the box frame and its brackets clear to reveal the fill, and safe tiles are
+redrawn as plain interior, so box and region read as one outline. Inner corners
+open too. This works through the plane shaders (`Assets/Shaders/SafeSeams.hlsl`,
+included by Sprite-Lit-PlaneAHide and Sprite-Lit-Saturation). Up to 32 seam
+rectangles are uploaded as globals, each tagged with its plane, and only renderers
+that opt in at runtime (SafeBox frames and safe-terrain tilemaps) react. Edit mode
+and the Scene view always show both full borders. Any other sprite shader would
+need the same include to take part.
+
+How it works:
+
+- `SafeRegion` (on SafeBox and on each baked safe-terrain map) keeps its original
+  collider as **physical support** for non-player bodies, excluding only the
+  Player/PlayerB layers. Boxes therefore stay supported however passages open.
+- Players collide with baked **edge sections** on a separate child Rigidbody2D
+  (kinematic for SafeBox, static for terrain). `SafeBoundarySystem` indexes them in
+  4-unit buckets and, each physics step, rebuilds only edges whose region moved,
+  changed plane, or was enabled/disabled, plus their opposed, coincident partners.
+  Unchanged geometry costs no rebuilds.
+- `SafePlayerCollision` filters player movement, wall, and grab queries so support
+  colliders never block the player, and resolves boundary closures.
+- The terrain bake (`TerrainCollision`) also bakes per-cell safe boundary edges. Their
+  hidden carrier, *"Safe terrain collision (generated) player edges (generated)"*,
+  sits under the Level root beside Ground, **outside** the terrain composites:
+  colliders changing beneath a Manual CompositeCollider2D make Unity regenerate it
+  (empty) at runtime. Do not reparent it. Bakes still run only in the editor.
+
+Validation (Unity CLI `run_script`):
+
+- `ValidateSafeBox.cs` (Edit mode): variant, footprint, nonlethal interior, baked
+  edges, palette entry/spacing, and actual EntityBrush painting.
+- `ValidateSafeBoxPrototype.cs` (Edit mode): boundary geometry for full/partial/corner
+  contact, planes, disable/destroy, multiple neighbors, terrain, and timing.
+- `PrepareSafeBoxPlay.cs` (Edit mode) bakes a temporary terrain fixture; then run
+  `ValidateSafeBoxPlay.cs` in Play mode (gameplay, connections, closures, support,
+  profiling), and finally `PrepareSafeBoxPlay.Cleanup` to delete the fixture.
+  Physical support must be validated in Play mode: Edit-mode preview scenes
+  regenerate tilemap composites whenever any collider changes, which drops
+  resting contacts there only.
 
 ### Lethal penetration
 

@@ -105,6 +105,7 @@ GameObject:
   - component: {fileID: 8343664459256908756}
   - component: {fileID: 241848594997248109}
   - component: {fileID: 7729713288062808884}
+  - component: {fileID: 1355539015563371793}
   m_Layer: 8
   m_Name: Box
   m_TagString: Untagged
@@ -233,3 +234,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::KillsOnPenetration
   penetrationTolerance: 0.03
+--- !u!114 &1355539015563371793
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5916292814736474954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e65df399738e20541a2abd3ebf044ee5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Pushable

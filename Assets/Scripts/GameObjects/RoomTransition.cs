@@ -3,9 +3,11 @@ using UnityEngine;
 [DisallowMultipleComponent, RequireComponent(typeof(BoxCollider2D))]
 public sealed class RoomTransition : MonoBehaviour
 {
-    public RoomConnection connection;
-    [Tooltip("Unique within this room. Must match this endpoint in the connection asset.")]
+    [Tooltip("Unique within this room.")]
     public string zoneId;
+    [Tooltip("Full scene asset path. Set the destination on either doorway; the other one links back automatically.")]
+    public string destinationScene;
+    public string destinationZone;
     public Vector2 areaSize = new Vector2(1, 4);
     [Tooltip("Player root position after arrival. Place safely inside the camera and clear of terrain.")]
     public Transform arrival;

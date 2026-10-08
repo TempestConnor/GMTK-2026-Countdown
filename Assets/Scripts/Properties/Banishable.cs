@@ -66,8 +66,14 @@ public class Banishable : MonoBehaviour
         targetRenderer.gameObject.layer = layer;
 
         mpb ??= new MaterialPropertyBlock();
-        targetRenderer.GetPropertyBlock(mpb);
-        mpb.SetFloat(SaturationId, currentPlane == Plane.A ? 1f : 0f);
-        targetRenderer.SetPropertyBlock(mpb);
+        // Layered visuals (SafeBox's fill under its frame) share the target's plane layer and tint;
+        // a child left on the Plane A layer would stay visible after banishing.
+        foreach (var sr in targetRenderer.GetComponentsInChildren<SpriteRenderer>(true))
+        {
+            sr.gameObject.layer = layer;
+            sr.GetPropertyBlock(mpb);
+            mpb.SetFloat(SaturationId, currentPlane == Plane.A ? 1f : 0f);
+            sr.SetPropertyBlock(mpb);
+        }
     }
 }

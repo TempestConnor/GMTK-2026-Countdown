@@ -15,6 +15,7 @@ public partial class playerController2
         actions.Register(new MovementAction(this));
         actions.Register(new DashAction(this));
         actions.Register(new JumpAction(this));
+        actions.Register(new GrabAction(this));
         actions.Register(new AimAction(this));
         actions.Register(new PreviewAction(this));
         banishAction = new BanishAction(this);
@@ -32,11 +33,14 @@ public partial class playerController2
     public void onPlayerDeath()
     {
         inputLock.Acquire(); // Held for this player's remaining lifetime.
-        actions.CancelAll();
+        // Keep the banish volley out: returning it would flip the camera back to plane A
+        // and hide the lethal geometry during the death freeze. The respawn reload resets it.
+        actions.CancelAll(banishAction);
         rb.linearVelocity = Vector2.zero;
         rb.angularVelocity = 0f;
         rb.simulated = false;
 
-        //Begin Death Animation/Sound?
+        if (playerAudio != null) playerAudio.PlayDeath();
+        //Begin Death Animation?
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -5,6 +6,10 @@ public class PlayerLife : MonoBehaviour
 {
     private playerController2 playerController;
     private Collider2D bodyCollider;
+
+    [Tooltip("Real-time seconds the game holds still on death so the player can see what killed them.")]
+    [SerializeField, Min(0f)] private float deathFreezeDuration = 0.3f;
+    private bool isDeathFrozen;
 
     private void Awake()
     {
@@ -63,9 +68,29 @@ public class PlayerLife : MonoBehaviour
             damageable.Kill();
         playerController.onPlayerDeath();
 
-        Respawn();
-
+        if (deathFreezeDuration > 0f && Application.isPlaying) StartCoroutine(FreezeThenRespawn());
+        else Respawn();
     }
+
+    private IEnumerator FreezeThenRespawn()
+    {
+        // Aiming was cancelled in onPlayerDeath, so the reticule's slow-mo no longer owns the time scale.
+        // The banish return timer uses scaled time, so the volley (and plane-B view) holds during the freeze.
+        isDeathFrozen = true;
+        Time.timeScale = 0f;
+        yield return new WaitForSecondsRealtime(deathFreezeDuration);
+        EndDeathFreeze();
+        Respawn();
+    }
+
+    private void EndDeathFreeze()
+    {
+        if (!isDeathFrozen) return;
+        isDeathFrozen = false;
+        Time.timeScale = 1f;
+    }
+
+    private void OnDisable() => EndDeathFreeze();
     public void Respawn()
     {
         if(!Application.isPlaying) return;

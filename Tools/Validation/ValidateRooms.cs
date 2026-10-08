@@ -32,7 +32,8 @@ public static class ValidateRooms
             float right = float.NegativeInfinity;
             foreach (Transform sibling in entry.parent)
             {
-                if (sibling == entry) continue;
+                // Only entries to the left: later entities (e.g. SafeBox) follow RoomTransition.
+                if (sibling == entry || sibling.localPosition.x > entry.localPosition.x) continue;
                 var box = sibling.GetComponent<BoxCollider2D>();
                 if (box != null) right = Mathf.Max(right, sibling.localPosition.x + box.size.x);
                 else foreach (var visual in sibling.GetComponentsInChildren<SpriteRenderer>())
@@ -59,12 +60,17 @@ public static class ValidateRooms
             expect("Cancellation honors exception and ignores duplicate registrations", ordinary.count == 1 && banish.count == 0);
             registry.CancelAll();
             expect("Death-style cancellation cancels every registered action", ordinary.count == 2 && banish.count == 1);
-            var connection = AssetDatabase.LoadAssetAtPath<RoomConnection>("Assets/Data/RoomConnections/ExampleRoomConnection.asset");
-            expect("A resolves to B", connection.TryGetDestination(connection.a.scenePath, connection.a.zoneId, out var b) && b == connection.b);
-            expect("B resolves to A", connection.TryGetDestination(connection.b.scenePath, connection.b.zoneId, out var a) && a == connection.a);
-            expect("Unknown endpoint is rejected", !connection.TryGetDestination(connection.a.scenePath, "missing", out _));
-            RoomConnectionValidation.Validate(connection);
-            passed.Add("Saved paired rooms have unique matching zones, arrival markers, players and build entries");
+            var links = ScriptableObject.CreateInstance<RoomLinks>();
+            try
+            {
+                links.links.Add(new RoomLinks.Link { fromScene = "A", fromZone = "east", toScene = "B", toZone = "west" });
+                expect("Declared side resolves to its destination", links.TryGetDestination("A", "east", out var toScene, out var toZone) && toScene == "B" && toZone == "west");
+                expect("Undeclared side resolves back", links.TryGetDestination("B", "west", out var backScene, out var backZone) && backScene == "A" && backZone == "east");
+                expect("Unknown endpoint is rejected", !links.TryGetDestination("A", "missing", out _, out _));
+            }
+            finally { UnityEngine.Object.DestroyImmediate(links); }
+            var errors = RoomLinksBuilder.Validate();
+            expect("Saved rooms have unique linked zones, arrival markers, players and build entries:\n" + string.Join("\n", errors), errors.Count == 0);
             var membership = new LevelCatalog.Level { scenePath = "start", roomScenePaths = new List<string> { "room" } };
             expect("Level membership covers start and additional rooms", membership.ContainsScene("start") && membership.ContainsScene("room") && !membership.ContainsScene("other"));
             return string.Join("\n", passed);

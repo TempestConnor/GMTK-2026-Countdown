@@ -14,6 +14,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
         [HideInInspector] _RendererColor("RendererColor", Color) = (1,1,1,1)
         [HideInInspector] _AlphaTex("External Alpha", 2D) = "white" {}
         [HideInInspector] _EnableExternalAlpha("Enable External Alpha", Float) = 0
+        [HideInInspector] _SafeSeamRole("Safe Seam Role", Float) = 0
+        [HideInInspector] _SafeSeamPlane("Safe Seam Plane", Float) = 0
     }
 
     // Plane-A instances of this shader (_Saturation high, i.e. not desaturated to represent Plane B)
@@ -73,13 +75,15 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
             };
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Lit2DCommon.hlsl"
+            #include "SafeSeams.hlsl"
 
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
                 half _Saturation;
                 half _PreviewHideEligible;
-            CBUFFER_END
+                half _SafeSeamRole;
+                half _SafeSeamPlane;            CBUFFER_END
 
             Varyings LitVertex(Attributes input)
             {
@@ -96,7 +100,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
 
             half4 LitFragment(Varyings input) : SV_Target
             {
-                half4 col = CommonLitFragment(input, input.color);
+                half4 color = ApplySafeSeam(input.color, input.uv, input.previewPositionWS.xy, _SafeSeamRole, _SafeSeamPlane);
+                half4 col = CommonLitFragment(input, color);
                 half luminance = dot(col.rgb, half3(0.299, 0.587, 0.114));
                 col.rgb = lerp(half3(luminance, luminance, luminance), col.rgb, _Saturation);
                 col.a *= ComputePreviewHideMask(input.previewPositionWS, _Saturation, _PreviewHideEligible);
@@ -138,7 +143,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
             CBUFFER_START( UnityPerMaterial )
                 half4 _Color;
                 half _Saturation;
-            CBUFFER_END
+                half _SafeSeamRole;
+                half _SafeSeamPlane;            CBUFFER_END
 
             Varyings NormalsRenderingVertex(Attributes input)
             {
@@ -197,7 +203,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
                 half4 _Color;
                 half _Saturation;
                 half _PreviewHideEligible;
-            CBUFFER_END
+                half _SafeSeamRole;
+                half _SafeSeamPlane;            CBUFFER_END
 
             Varyings UnlitVertex(Attributes input)
             {

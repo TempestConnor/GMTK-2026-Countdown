@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PlayerStats_Default
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   walkSpeed: 5
-  jumpImpulse: 11
+  jumpImpulse: 13
   gravityMultiplier: 2
   maxFallSpeed: 15
   slideSpeed: 2
