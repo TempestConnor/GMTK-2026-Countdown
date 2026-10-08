@@ -8,6 +8,9 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
         [MaterialToggle] _ZWrite("ZWrite", Float) = 0
         _Saturation("Saturation", Range(0, 1)) = 1
         [MaterialToggle] _PreviewHideEligible("Hide in Plane Preview (while on Plane A)", Float) = 1
+        _OutlineColor("Banish Outline Color", Color) = (1,0.84,0,1)
+        _OutlineWidth("Banish Outline Width (texels)", Range(0.5, 6)) = 2.5
+        [HideInInspector] _OutlineAmount("Banish Outline Amount", Range(0, 1)) = 0
 
         // Legacy properties. They're here so that materials using this shader can gracefully fallback to the legacy sprite shader.
         [HideInInspector] _Color("Tint", Color) = (1,1,1,1)
@@ -76,6 +79,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/Lit2DCommon.hlsl"
             #include "SafeSeams.hlsl"
+            #include "BanishOutline.hlsl"
 
             // NOTE: Do not ifdef the properties here as SRP batcher can not handle different layouts.
             CBUFFER_START(UnityPerMaterial)
@@ -83,7 +87,11 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
                 half _Saturation;
                 half _PreviewHideEligible;
                 half _SafeSeamRole;
-                half _SafeSeamPlane;            CBUFFER_END
+                half _SafeSeamPlane;
+                half4 _OutlineColor;
+                half _OutlineWidth;
+                half _OutlineAmount;
+            CBUFFER_END
 
             Varyings LitVertex(Attributes input)
             {
@@ -104,6 +112,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
                 half4 col = CommonLitFragment(input, color);
                 half luminance = dot(col.rgb, half3(0.299, 0.587, 0.114));
                 col.rgb = lerp(half3(luminance, luminance, luminance), col.rgb, _Saturation);
+                col.rgb = ApplyBanishOutline(col.rgb, input.uv, _OutlineAmount, _OutlineWidth, _OutlineColor);
                 col.a *= ComputePreviewHideMask(input.previewPositionWS, _Saturation, _PreviewHideEligible);
                 return col;
             }
@@ -144,7 +153,11 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
                 half4 _Color;
                 half _Saturation;
                 half _SafeSeamRole;
-                half _SafeSeamPlane;            CBUFFER_END
+                half _SafeSeamPlane;
+                half4 _OutlineColor;
+                half _OutlineWidth;
+                half _OutlineAmount;
+            CBUFFER_END
 
             Varyings NormalsRenderingVertex(Attributes input)
             {
@@ -193,6 +206,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
             };
 
             #include "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/2DCommon.hlsl"
+            #include "BanishOutline.hlsl"
 
             // GPU Instancing
             #pragma multi_compile_instancing
@@ -204,7 +218,11 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
                 half _Saturation;
                 half _PreviewHideEligible;
                 half _SafeSeamRole;
-                half _SafeSeamPlane;            CBUFFER_END
+                half _SafeSeamPlane;
+                half4 _OutlineColor;
+                half _OutlineWidth;
+                half _OutlineAmount;
+            CBUFFER_END
 
             Varyings UnlitVertex(Attributes input)
             {
@@ -223,6 +241,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
                 half4 col = CommonUnlitFragment(input, input.color);
                 half luminance = dot(col.rgb, half3(0.299, 0.587, 0.114));
                 col.rgb = lerp(half3(luminance, luminance, luminance), col.rgb, _Saturation);
+                col.rgb = ApplyBanishOutline(col.rgb, input.uv, _OutlineAmount, _OutlineWidth, _OutlineColor);
                 col.a *= ComputePreviewHideMask(input.previewPositionWS, _Saturation, _PreviewHideEligible);
                 return col;
             }

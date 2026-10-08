@@ -11,6 +11,8 @@ public class BanishReticule : MonoBehaviour
     [SerializeField] private Color armedColor = new Color(1f, 0.84f, 0f, 1f);
     [SerializeField] private float outlineWidth = 0.1f;
     [SerializeField] private int outlineSegments = 48;
+    [Tooltip("Outline color every Banishable glows with while the reticule is up.")]
+    [SerializeField] private Color banishableGlowColor = new Color(1f, 0.84f, 0f, 1f);
 
     [Header("Crosshair ticks (fractions of the radius)")]
     [SerializeField] private float tickInner = 0.45f;
@@ -31,12 +33,14 @@ public class BanishReticule : MonoBehaviour
         previousFixedDeltaTime = Time.fixedDeltaTime;
         Time.timeScale = previousTimeScale * 0.25f;
         Time.fixedDeltaTime = previousFixedDeltaTime * 0.25f;
+        Banishable.SetAimGlow(true, banishableGlowColor);
     }
 
     private void OnDisable()
     {
         Time.timeScale = previousTimeScale;
         Time.fixedDeltaTime = previousFixedDeltaTime;
+        Banishable.SetAimGlow(false, banishableGlowColor);
         touching.Clear();
         armed = false;
         ApplyColor(armingColor);

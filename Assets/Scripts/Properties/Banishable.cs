@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -13,11 +14,21 @@ public class Banishable : MonoBehaviour
     [SerializeField] private int layerOnA;
     [SerializeField] private int layerOnB;
     [SerializeField] private SpriteRenderer targetRenderer;
+    [Tooltip("Outline this object while the banish reticule is up.")]
+    [SerializeField] private bool glowWhenAiming = true;
 
     public PlaneChangedEvent onPlaneChanged;
 
     private static readonly int SaturationId = Shader.PropertyToID("_Saturation");
+    private static readonly int OutlineAmountId = Shader.PropertyToID("_OutlineAmount");
+    private static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
     private MaterialPropertyBlock mpb;
+
+    // Every enabled Banishable, so the reticule can light them all up at once. The glow state is
+    // static too, so a Banishable enabled mid-aim (room load, respawn) picks it up in OnEnable.
+    private static readonly HashSet<Banishable> active = new HashSet<Banishable>();
+    private static bool aimGlowOn;
+    private static Color aimGlowColor = new Color(1f, 0.84f, 0f, 1f);
 
     public Plane CurrentPlane => currentPlane;
 
@@ -32,7 +43,14 @@ public class Banishable : MonoBehaviour
         {
             targetRenderer = GetComponentInChildren<SpriteRenderer>();
         }
+        active.Add(this);
         Apply();
+    }
+
+    private void OnDisable()
+    {
+        active.Remove(this);
+        if (aimGlowOn) ApplyGlow(false);
     }
 
     private void OnValidate()
@@ -49,6 +67,17 @@ public class Banishable : MonoBehaviour
         currentPlane = p;
         Apply();
         onPlaneChanged?.Invoke(currentPlane);
+    }
+
+    // Called by BanishReticule as it shows/hides.
+    public static void SetAimGlow(bool on, Color color)
+    {
+        aimGlowOn = on;
+        aimGlowColor = color;
+        foreach (var member in active)
+        {
+            if (member != null) member.ApplyGlow(on);
+        }
     }
 
     public void TogglePlane()
@@ -75,5 +104,19 @@ public class Banishable : MonoBehaviour
             mpb.SetFloat(SaturationId, currentPlane == Plane.A ? 1f : 0f);
             sr.SetPropertyBlock(mpb);
         }
+
+        ApplyGlow(aimGlowOn);
+    }
+
+    // Only the target renderer gets the outline -- layered children (SafeBox's fill) sit inside it.
+    private void ApplyGlow(bool on)
+    {
+        if (targetRenderer == null) return;
+
+        mpb ??= new MaterialPropertyBlock();
+        targetRenderer.GetPropertyBlock(mpb);
+        mpb.SetFloat(OutlineAmountId, on && glowWhenAiming ? 1f : 0f);
+        mpb.SetColor(OutlineColorId, aimGlowColor);
+        targetRenderer.SetPropertyBlock(mpb);
     }
 }
