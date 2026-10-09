@@ -26,6 +26,7 @@ public partial class playerController2
         {
             player.ReturnBanished();
             player.banishElapsed = 0;
+            player.snapPoseTimer = 0;
         }
     }
 
@@ -64,6 +65,11 @@ public partial class playerController2
     [SerializeField] private BanishStats banishStats;
     [SerializeField] private BanishReticule reticule;
     [SerializeField] private BanishCountdownIndicator countdownIndicator;
+
+    [Header("Banish Flash")]
+    [SerializeField] private BanishFlash.Settings banishFlash = BanishFlash.Settings.Default;
+    [Tooltip("Where the flash sits on the drawn body, as fractions of its half-extents (x forward, y up).")]
+    [SerializeField] private Vector2 banishFlashEyeOffset = new Vector2(0.3f, 0.55f);
 
     private Banishable _planeMember;
     private Banishable planeMember => _planeMember != null ? _planeMember : (_planeMember = GetComponent<Banishable>());
@@ -117,6 +123,7 @@ public partial class playerController2
         }
 
         UpdatePreview();
+        UpdateAnimation();
     }
 
     private void UpdateCountdownIndicator()
@@ -220,12 +227,29 @@ public partial class playerController2
         if (banishedMembers.Count == 0) return;
         reticule.Hide();
         if (playerAudio != null) playerAudio.PlayBanishFire();
+        PlayBanishFlash();
         isBanished = true;
         banishElapsed = 0f;
+        snapPoseTimer = snapPoseDuration;
         if (countdownIndicator != null) countdownIndicator.Show();
         returnCoroutine = StartCoroutine(ReturnAfterDelay(banishStats.returnDelay));
         CheckDamageablePenetration();
         BanishFired?.Invoke(this);
+    }
+
+    private void PlayBanishFlash()
+    {
+        Vector3 position = transform.position;
+        if (spriteRenderer != null)
+        {
+            Bounds bounds = spriteRenderer.bounds;
+            float forward = spriteRenderer.flipX ? -1f : 1f;
+            position = bounds.center + new Vector3(
+                bounds.extents.x * banishFlashEyeOffset.x * forward,
+                bounds.extents.y * banishFlashEyeOffset.y * GravityUpSign,
+                0f);
+        }
+        BanishFlash.Play(position, banishFlash);
     }
 
     private IEnumerator ReturnAfterDelay(float remaining)

@@ -190,9 +190,28 @@ everywhere.
 
 ## Swapping in real art
 
-Right now `Tile_Ground` and `Tile_Platform` both point at the same
-`Assets/Tiles/Sprites/PlaceholderSquare.png` and are only told apart by a
-color tint (brown vs. gray) on the Tile asset. When real art arrives:
+Lethal terrain (`Tile_Ground`, `Tile_Platform`, `Tile_Hazard`) auto-tiles: each
+cell picks its sprite from its neighbors, so one painted tile draws floors and
+walls differently without repainting. Exposed top and bottom faces draw as light
+floor plates (both are walkable once gravity flips); exposed side faces draw as
+smooth blue wall panels; buried cells draw as plain dark plating. `Tile_Hazard`
+is the same lethal terrain with a yellow/black striped interior — paint it
+anywhere in a lethal region as decoration; it joins its neighbors seamlessly.
+The art lives in `Assets/Tiles/Sprites/TerrainFrame.png` and `HazardFrame.png`,
+generated atlases like the safe tile frames below. To change the style, edit the
+constants in `TerrainFrameGenerator.cs` and run **Tools > Level > Generate
+Terrain Frames** (or bump `StyleVersion` in that file, which regenerates on the
+next script reload). Don't edit the PNGs by hand; the next regeneration overwrites
+them. Tilemaps cache sprites in the scene file, so after regenerating, run
+**Tools > Level > Refresh Terrain In All Scenes** to update and save scenes that
+weren't open.
+
+Behind everything, the `MainCamera` prefab's **Backdrop** child draws a dim
+far-facility-wall pattern (`FacilityBackdrop.cs`). It sits at world Z 20, so the
+perspective camera gives it parallax, and it shows on both planes. Restyle it in
+`FacilityBackdropGenerator.cs` and run **Tools > Level > Generate Facility
+Backdrop**. The per-plane `Background`/`BackgroundB` tilemaps still draw in
+front of it for room-specific decor. To use hand-drawn art instead, follow the steps below:
 
 1. **Import it.** Drop the sprite(s) into `Assets/Tiles/Sprites/`. Set
    **Texture Type → Sprite (2D and UI)**, slice sheets with **Sprite Mode →
@@ -209,10 +228,50 @@ color tint (brown vs. gray) on the Tile asset. When real art arrives:
    window, same as step 5 under "Painting terrain" below.
 4. **Entity art:** swap the sprite on each prefab's `SpriteRenderer` in
    `Assets/Prefabs/Entities/`. Only touch `EntityPalette` if you're adding a
-   brand-new entity type, not reskinning an existing one.
+   brand-new entity type, not reskinning an existing one. The sci-fi entity
+   sprites (`Assets/Tiles/Sprites/Entity*.png`) are drawn at 16 px per world
+   unit to match the safe tiles; Box is 32 px at PPU 32 on its 2x Visual, which
+   SafeBox inherits. Door and GravityReversalArea use **Draw Mode → Tiled**
+   nine-slice sprites: their scripts set `SpriteRenderer.size` (unit scale) instead
+   of stretching the transform, so frames stay crisp at any length/size.
 5. **Sanity check:** open a level and confirm painted tiles show the new art
    with no gaps/seams — seams usually mean the PPU or sprite pixel size is
    off from the Grid's 1×1 cell size.
+
+## Player sprite and animations
+
+The player (a robot detective in a trench coat and fedora with a green visor)
+is generated pixel art, like the terrain. All frames live in one sliced sheet,
+`Assets/Tiles/Sprites/PlayerSheet.png` (32 px per unit, sprites named
+`Player_<State>_<frame>`). The clips are in `Assets/Animations/Player/`.
+Don't edit these by hand; the next regeneration overwrites them.
+
+- **Art:** `Assets/Scripts/Editor/PlayerSprites/PlayerSpriteArt.cs` defines the
+  palette, every pose, and each clip's frame count/fps/looping. Poses are in
+  design pixels on a reference 26×51 px body (the 0.8×1.6 hitbox), facing
+  right. Bump `StyleVersion` in `PlayerSpriteGenerator.cs` after editing, or run
+  **Tools > Player > Generate Player Sprites**.
+- **Resizing the hitbox:** change the Player prefab's `CapsuleCollider2D` size
+  or offset and save the prefab. The sheet, clips and sprite pivot regenerate
+  automatically at the new size, redrawn crisply rather than stretched.
+  Proportions follow the hitbox's aspect ratio. Only the prefab's collider is
+  read; per-scene overrides of it are ignored.
+- **Choosing a clip:** `playerController2.Animation.cs` holds all selection
+  rules and writes a `PlayerAnimState` to the Animator's `state` int. The
+  generator rebuilds `PlayerAnimatorController`'s base layer as one Any State
+  transition per state, so don't add states or transitions there by hand. To
+  add a pose, append a value to `PlayerAnimState`, add its clip in
+  `PlayerSpriteArt.Clips()`, and pick it in `ChooseAnimState`.
+- **States:** idle, walk, rise, fall, wall slide, wall jump, grab (idle, push,
+  pull, airborne), aim (thinking: hand on chin) and banish (finger snap held
+  close to the chest), each with ground (idle/walk), air and wall-slide
+  variants. Aiming shows while the aim button is held. The snap plays for
+  `snapPoseDuration` after a banish fires, and is not played on early recall.
+  Dash has no pose of its own and shows rise/fall.
+- **Flipping:** the sprite flips horizontally to face the move direction (away
+  from the wall during a wall jump, toward a grabbed box while grabbing), and
+  vertically while gravity is reversed so the player stands upside down. Keep
+  the Player root's scale at (1, 1, 1); flipping is done on the SpriteRenderer.
 
 ## Creating a new level
 
@@ -623,7 +682,8 @@ Dots have no colliders, are hidden from the Hierarchy and are never saved.
 
 Paint **Spike** from **EntityPalette** at **(14, 3, 0)** with **EntityBrush** onto
 **Level > Entities**. The prefab is `Assets/Prefabs/Entities/Spike.prefab`, with a
-red triangle placeholder sprite and a matching triangular trigger. It carries
+steel triangle sprite (`EntitySpike.png`, 1 x 0.5 units at unit scale) and a
+matching triangular trigger. It carries
 `KillsOnContact` and has no `Banishable` component. It follows the same editor
 plane assignment and preview materials as other static entities.
 
@@ -648,8 +708,8 @@ level's `Entities` child. Its palette entry starts at `(2, 3, 0)` and spans
 four columns; `GoalFlag` occupies the following entry at x=7.
 
 Set **Area Size** on `GravityReversalArea` to define its rectangular width and
-height in grid units (default 4x4). The trigger and translucent cyan visual
-resize together, keeping the root at the bottom-left corner. **Affected Layers**
+height in grid units (default 4x4). The trigger and translucent visual (a white
+tiled sprite tinted cyan by its SpriteRenderer color) resize together, keeping the root at the bottom-left corner. **Affected Layers**
 limits which dynamic Rigidbody2D objects it affects; the physics layer collision
 matrix also applies, including the project's plane separation.
 

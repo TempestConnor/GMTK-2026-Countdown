@@ -90,11 +90,7 @@ public partial class playerController2 : MonoBehaviour
         }
         private set
         {
-            if (_isFacingRight != value)
-            {
-                spriteRenderer.flipX = !value;
-            }
-            _isFacingRight = value;
+            _isFacingRight = value; // The sprite's flip follows in UpdateAnimation.
         }
     }
 

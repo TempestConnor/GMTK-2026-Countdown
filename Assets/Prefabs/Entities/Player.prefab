@@ -198,6 +198,7 @@ MonoBehaviour:
   armedColor: {r: 1, g: 0.84, b: 0, a: 1}
   outlineWidth: 0.1
   outlineSegments: 48
+  banishableGlowColor: {r: 1, g: 0.84, b: 0, a: 1}
   tickInner: 0.45
   tickOuter: 1.35
 --- !u!50 &9097138874221090806
@@ -255,7 +256,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: -1, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8231076251311187659}
@@ -414,8 +415,8 @@ Transform:
   m_GameObject: {fileID: 7130342556206892078}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0, y: 0, z: -0}
-  m_LocalScale: {x: -1, y: 1, z: 0}
+  m_LocalPosition: {x: 0, y: 3, z: -25}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8231076251311187659}
@@ -444,7 +445,7 @@ MonoBehaviour:
     LookAtTarget: {fileID: 0}
     CustomLookAtTarget: 0
   Lens:
-    FieldOfView: 40
+    FieldOfView: 37
     OrthographicSize: 10
     NearClipPlane: 0.1
     FarClipPlane: 5000
@@ -481,7 +482,7 @@ MonoBehaviour:
     AngularDampingMode: 0
     RotationDamping: {x: 1, y: 1, z: 1}
     QuaternionDamping: 1
-  FollowOffset: {x: 0, y: 0, z: -25}
+  FollowOffset: {x: 0, y: 3, z: -25}
 --- !u!114 &1906963972517262004
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -543,7 +544,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -1.5983489, y: 9.257824, z: 0}
-  m_LocalScale: {x: -1, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1337013145267630503}
@@ -600,12 +601,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 5
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: b34326c181d08584cb44e5c174f3534b, type: 3}
-  m_Color: {r: 0.3, g: 0.6, b: 1, a: 1}
+  m_Sprite: {fileID: -277141488, guid: 79525065cc2b4b64da771ae911c1810c, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1.375, y: 1.96875}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -673,7 +674,7 @@ CapsuleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 0.8, y: 1.6}
+  m_Size: {x: 1, y: 1.9}
   m_Direction: 0
 --- !u!95 &3688300139311810376
 Animator:
@@ -733,6 +734,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebed510b90bb55b4ba4858270fe1fb8e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::playerController2
+  snapPoseDuration: 0.35714287
   swapTargetRadius: 2
   banishStats: {fileID: 11400000, guid: 196ab82673cafd247979b4ef199151c8, type: 2}
   reticule: {fileID: 1573796816095544331}
@@ -952,6 +954,7 @@ MonoBehaviour:
   layerOnA: 7
   layerOnB: 11
   targetRenderer: {fileID: 1315618476424590749}
+  glowWhenAiming: 1
   onPlaneChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -1068,8 +1071,8 @@ MonoBehaviour:
   banishArmClip: {fileID: 8300000, guid: 0301cbd054d34634e8f70494698f39f6, type: 3}
   banishFireClip: {fileID: 8300000, guid: 9a95c19d25a69244eb0dcc6bfe017824, type: 3}
   banishReturnClip: {fileID: 8300000, guid: fedf6e3507f72874b96a39dca4df7719, type: 3}
-  deathClip: {fileID: 8300000, guid: 256e8a0b0325f354797cb397ac1d33fb, type: 3}
   grabClip: {fileID: 8300000, guid: 656e05b8d2670d043a5116d22124c179, type: 3}
+  deathClip: {fileID: 8300000, guid: 256e8a0b0325f354797cb397ac1d33fb, type: 3}
 --- !u!114 &5799936137948354972
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1082,6 +1085,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1c4db77660c8ba34784c45213422bd3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerLife
+  deathFreezeDuration: 0.3
 --- !u!114 &4642267034213737519
 MonoBehaviour:
   m_ObjectHideFlags: 0

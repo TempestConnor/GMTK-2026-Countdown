@@ -16,7 +16,8 @@ public sealed class TerrainTile : Tile
     public bool killsOnPenetration = true;
 
     // Optional 256 sprites indexed by neighbor mask, so adjacent tiles of the same
-    // lethality draw as one framed region. Filled by Tools > Level > Generate Safe Tile Frames.
+    // lethality draw as one framed region. Filled by Tools > Level > Generate Terrain Frames
+    // (lethal) and Generate Safe Tile Frames (safe).
     [SerializeField, HideInInspector] private Sprite[] connectedSprites;
 
     public bool IsConnected => connectedSprites != null && connectedSprites.Length == 256;

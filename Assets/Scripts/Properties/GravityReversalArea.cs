@@ -28,7 +28,13 @@ public sealed class GravityReversalArea : MonoBehaviour
     private static readonly Dictionary<Rigidbody2D, Effect> effects = new Dictionary<Rigidbody2D, Effect>();
 
     private void Awake() => ConfigureArea();
-    private void OnValidate() => ConfigureArea();
+    private void OnValidate()
+    {
+#if UNITY_EDITOR
+        // Setting SpriteRenderer.size sends a message, which Unity disallows inside OnValidate.
+        UnityEditor.EditorApplication.delayCall += () => { if (this != null) ConfigureArea(); };
+#endif
+    }
 
     public void ConfigureArea()
     {
@@ -40,7 +46,16 @@ public sealed class GravityReversalArea : MonoBehaviour
         if (areaVisual != null)
         {
             areaVisual.transform.localPosition = area.offset;
-            areaVisual.transform.localScale = new Vector3(areaSize.x, areaSize.y, 1f);
+            // Tiled art is resized so its frame and chevrons keep their size; a simple sprite is stretched.
+            if (areaVisual.drawMode != SpriteDrawMode.Simple)
+            {
+                areaVisual.transform.localScale = Vector3.one;
+                areaVisual.size = areaSize;
+            }
+            else
+            {
+                areaVisual.transform.localScale = new Vector3(areaSize.x, areaSize.y, 1f);
+            }
         }
     }
 

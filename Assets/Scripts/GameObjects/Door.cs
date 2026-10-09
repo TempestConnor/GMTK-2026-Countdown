@@ -49,7 +49,10 @@ public class Door : MonoBehaviour
 
     private void OnValidate()
     {
-        ApplyShape();
+#if UNITY_EDITOR
+        // Setting SpriteRenderer.size sends a message, which Unity disallows inside OnValidate.
+        UnityEditor.EditorApplication.delayCall += () => { if (this != null) ApplyShape(); };
+#endif
     }
 
     private void Awake()
@@ -73,7 +76,18 @@ public class Door : MonoBehaviour
         if (visual != null)
         {
             visual.localPosition = new Vector3(size.x * 0.5f, size.y * 0.5f, 0);
-            visual.localScale = new Vector3(size.x, size.y, 1);
+
+            // Tiled/sliced art is resized so its frame stays crisp; a simple sprite is stretched.
+            var sprite = visual.GetComponent<SpriteRenderer>();
+            if (sprite != null && sprite.drawMode != SpriteDrawMode.Simple)
+            {
+                visual.localScale = Vector3.one;
+                sprite.size = size;
+            }
+            else
+            {
+                visual.localScale = new Vector3(size.x, size.y, 1);
+            }
         }
     }
 

@@ -16,7 +16,7 @@ public partial class playerController2
             if (player.wallWindowCoroutine != null) player.StopCoroutine(player.wallWindowCoroutine);
             player.wallJumpCoroutine = player.wallWindowCoroutine = null;
             player.wallJumpDirection = Vector2.zero;
-            player.isWallJumping = player.isSliding = player.canWallJump = false;
+            player.isWallJumping = player.isSliding = player.canWallJump = player.wallJumpPose = false;
             player.canJump = player.canwalk = true;
             player.rb.linearVelocity = new Vector2(player.rb.linearVelocity.x, 0);
             player.setGravityScale(player.originalGravity);
@@ -63,6 +63,8 @@ public partial class playerController2
         setGravityScale(originalGravity * stats.wallJumpGravity);
 
         isWallJumping = true;
+        wallJumpPose = true;
+        wallJumpFacesRight = wallJumpDirection.x > 0;
 
         canwalk = false;
 
@@ -72,6 +74,7 @@ public partial class playerController2
 
         yield return new WaitForSeconds(stats.wallJumpBounceDuration);
         wallJumpCoroutine = null;
+        wallJumpPose = false;
         canwalk = true;
         setGravityScale(originalGravity);
         Debug.Log("wall jumped");
