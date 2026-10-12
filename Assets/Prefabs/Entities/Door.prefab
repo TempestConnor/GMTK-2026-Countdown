@@ -100,6 +100,9 @@ MonoBehaviour:
   condition: 1
   switches:
   - {fileID: 0}
+  openDuration: 0.4
+  closeDuration: 0.12
+  retractInto: 1
   onOpened:
     m_PersistentCalls:
       m_Calls: []

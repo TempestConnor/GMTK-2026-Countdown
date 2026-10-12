@@ -31,6 +31,13 @@ static class EntityPlaneAutoAssign
     const string PlaneAHideMaterialPath = "Assets/Materials/SpriteLitPlaneAHide.mat";
     const string PlaneANormalMaterialPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Lit-Default.mat";
 
+    // Plane A (preview-hidden) / Plane B (always visible) material pairs kept in sync by layer.
+    static readonly (string planeA, string planeB)[] MaterialPairs =
+    {
+        (PlaneAHideMaterialPath, PlaneANormalMaterialPath),
+        ("Assets/Materials/GravityAreaConveyor.mat", "Assets/Materials/GravityAreaConveyorB.mat"),
+    };
+
     static EntityPlaneAutoAssign()
     {
         ObjectChangeEvents.changesPublished += OnChangesPublished;
@@ -70,22 +77,18 @@ static class EntityPlaneAutoAssign
     }
 
     // Normalizes any plain (non-PlaneAware) sprite's material to match its final layer --
-    // SpriteLitPlaneAHide on Plane A (Ground/Entities), stock Sprite-Lit-Default on Plane B
-    // (GroundB/EntityB). Only touches renderers already on one of those two materials, so
-    // Banishable's PlaneAware/PlaneAwareGray sprites (and anything else deliberate) are untouched.
+    // the Plane A material of its MaterialPairs entry on Plane A (Ground/Entities), the Plane B one
+    // on Plane B (GroundB/EntityB), e.g. SpriteLitPlaneAHide <-> stock Sprite-Lit-Default. Only touches
+    // renderers already on a paired material, so Banishable's PlaneAware/PlaneAwareGray sprites
+    // (and anything else deliberate) are untouched.
     static void SyncPreviewMaterials(GameObject root)
     {
-        var hideMat = AssetDatabase.LoadAssetAtPath<Material>(PlaneAHideMaterialPath);
-        var normalMat = AssetDatabase.LoadAssetAtPath<Material>(PlaneANormalMaterialPath);
-        if (hideMat == null || normalMat == null)
-            return;
-
         int groundLayer = LayerMask.NameToLayer("Ground");
         int entitiesLayer = LayerMask.NameToLayer("Entities");
 
         foreach (var sr in root.GetComponentsInChildren<SpriteRenderer>(true))
         {
-            if (sr.sharedMaterial != hideMat && sr.sharedMaterial != normalMat)
+            if (!TryGetPair(sr.sharedMaterial, out var hideMat, out var normalMat))
                 continue;
 
             bool isPlaneA = sr.gameObject.layer == groundLayer || sr.gameObject.layer == entitiesLayer;
@@ -97,6 +100,26 @@ static class EntityPlaneAutoAssign
             sr.sharedMaterial = wanted;
             EditorUtility.SetDirty(sr);
         }
+    }
+
+    static bool TryGetPair(Material current, out Material planeA, out Material planeB)
+    {
+        planeA = planeB = null;
+        if (current == null)
+            return false;
+
+        foreach (var (pathA, pathB) in MaterialPairs)
+        {
+            var a = AssetDatabase.LoadAssetAtPath<Material>(pathA);
+            var b = AssetDatabase.LoadAssetAtPath<Material>(pathB);
+            if (a == null || b == null || (current != a && current != b))
+                continue;
+
+            planeA = a;
+            planeB = b;
+            return true;
+        }
+        return false;
     }
 
     static void AssignPlaneB(GameObject root)

@@ -14,6 +14,14 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
         [HideInInspector] _EnableExternalAlpha("Enable External Alpha", Float) = 0
         [HideInInspector] _SafeSeamRole("Safe Seam Role", Float) = 0
         [HideInInspector] _SafeSeamPlane("Safe Seam Plane", Float) = 0
+
+        // Conveyor scroll: moves the texels inside _ConveyorRect (UV min xy, max zw) along V, wrapping within
+        // the rect. Used by tiled/9-sliced sprites whose centre slice repeats, e.g. the gravity area chevrons.
+        [Toggle(_CONVEYOR_SCROLL)] _ConveyorScroll("Conveyor Scroll", Float) = 0
+        _ConveyorRect("Conveyor Rect (UV min xy, max zw)", Vector) = (0.25, 0.25, 0.75, 0.75)
+        _ConveyorSpeed("Conveyor Speed (rects per second, + is up)", Float) = 0.5
+        // Plane B copies of Plane A-hidden art (e.g. the conveyor material) must stay visible in the preview circle.
+        [Toggle(_PREVIEW_HIDE_OFF)] _PreviewHideOff("Ignore Plane Preview (Plane B)", Float) = 0
     }
 
     // Plane A geometry using this shader goes transparent inside the plane-preview circle (hold E),
@@ -27,8 +35,24 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
 
     half ComputeHideMask(float3 positionWS)
     {
+    #if defined(_PREVIEW_HIDE_OFF)
+        return 1;
+    #endif
         float dist = length(positionWS.xy - _PreviewCenter.xy);
         return smoothstep(_PreviewRadius - _PreviewEdgeSoftness, _PreviewRadius, dist);
+    }
+
+    // Pure per-fragment UV math, so the animation costs no CPU time, Animator, or mesh rebuild.
+    float2 ConveyorUV(float2 uv, float4 rect, float speed, float time)
+    {
+    #if defined(_CONVEYOR_SCROLL)
+        if (all(uv >= rect.xy) && all(uv < rect.zw))
+        {
+            float height = rect.w - rect.y;
+            uv.y = rect.y + frac((uv.y - rect.y) / height - time * speed) * height;
+        }
+    #endif
+        return uv;
     }
     ENDHLSL
 
@@ -49,6 +73,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
 
             #pragma vertex LitVertex
             #pragma fragment LitFragment
+            #pragma shader_feature_local_fragment _ _CONVEYOR_SCROLL
+            #pragma shader_feature_local_fragment _ _PREVIEW_HIDE_OFF
 
             #include_with_pragmas "Packages/com.unity.render-pipelines.universal/Shaders/2D/Include/ShapeLightShared.hlsl"
 
@@ -78,7 +104,10 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
                 half _SafeSeamRole;
-                half _SafeSeamPlane;            CBUFFER_END
+                half _SafeSeamPlane;
+                float4 _ConveyorRect;
+                float _ConveyorSpeed;
+            CBUFFER_END
 
             Varyings LitVertex(Attributes input)
             {
@@ -96,6 +125,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
             half4 LitFragment(Varyings input) : SV_Target
             {
                 half4 color = ApplySafeSeam(input.color, input.uv, input.previewPositionWS.xy, _SafeSeamRole, _SafeSeamPlane);
+                input.uv = ConveyorUV(input.uv, _ConveyorRect, _ConveyorSpeed, _Time.y);
                 half4 col = CommonLitFragment(input, color);
                 col.a *= ComputeHideMask(input.previewPositionWS);
                 return col;
@@ -136,7 +166,10 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
             CBUFFER_START( UnityPerMaterial )
                 half4 _Color;
                 half _SafeSeamRole;
-                half _SafeSeamPlane;            CBUFFER_END
+                half _SafeSeamPlane;
+                float4 _ConveyorRect;
+                float _ConveyorSpeed;
+            CBUFFER_END
 
             Varyings NormalsRenderingVertex(Attributes input)
             {
@@ -169,6 +202,8 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
 
             #pragma vertex UnlitVertex
             #pragma fragment UnlitFragment
+            #pragma shader_feature_local_fragment _ _CONVEYOR_SCROLL
+            #pragma shader_feature_local_fragment _ _PREVIEW_HIDE_OFF
 
             struct Attributes
             {
@@ -194,7 +229,10 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
             CBUFFER_START(UnityPerMaterial)
                 half4 _Color;
                 half _SafeSeamRole;
-                half _SafeSeamPlane;            CBUFFER_END
+                half _SafeSeamPlane;
+                float4 _ConveyorRect;
+                float _ConveyorSpeed;
+            CBUFFER_END
 
             Varyings UnlitVertex(Attributes input)
             {
@@ -210,6 +248,7 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
 
             half4 UnlitFragment(Varyings input) : SV_Target
             {
+                input.uv = ConveyorUV(input.uv, _ConveyorRect, _ConveyorSpeed, _Time.y);
                 half4 col = CommonUnlitFragment(input, input.color);
                 col.a *= ComputeHideMask(input.previewPositionWS);
                 return col;

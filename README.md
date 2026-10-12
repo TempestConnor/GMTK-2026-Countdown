@@ -678,6 +678,19 @@ re-route when either end moves or terrain is painted. Each wire takes its switch
 layer, sorting layer and material, so it hides on the other plane like the switch.
 Dots have no colliders, are hidden from the Hierarchy and are never saved.
 
+### Door and switch animation
+
+Doors and switches animate in code, not with an Animator, because the door's length varies.
+A door slides into one end (**Retract Into**: Start = bottom/left, End = top/right) over
+**Open Duration**. It counts as closed until the slide finishes: it stays solid, `isOpen` is
+false and `onOpened` fires only at the end. When its condition fails, it is solid and fires
+`onClosed` at once, then slides shut over **Close Duration**. Its collider always covers the
+full door. A switch's **Visual** squashes to **Pressed Height** over **Press Duration**, keeping
+its bottom edge in place. This is cosmetic only: `isPressed` and the switch events change at once.
+Wires attach to the door's and switch's collider centres, so animation does not re-route them.
+The switch Visual sorts at order 6, above boxes and the player (5). Switches are triggers,
+so whatever presses one rests on the floor in front of it, and the plate draws over its bottom edge.
+
 ### Spike
 
 Paint **Spike** from **EntityPalette** at **(14, 3, 0)** with **EntityBrush** onto

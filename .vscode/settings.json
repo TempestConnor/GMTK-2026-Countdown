@@ -41,5 +41,5 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "GMTK_2026.slnx"
+    "dotnet.defaultSolution": "GMTK 2026.slnx"
 }

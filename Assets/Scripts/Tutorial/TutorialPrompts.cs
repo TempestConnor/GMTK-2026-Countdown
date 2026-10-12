@@ -34,6 +34,12 @@ public sealed class TutorialPrompts : MonoBehaviour
     [Tooltip("Pause between one prompt fading out and the next queued one fading in.")]
     [SerializeField, Min(0f)] private float gapBetweenPrompts = 0.2f;
 
+    [Header("Background box")]
+    [Tooltip("Box behind the text, resized to fit it. Its Image sets the colour. Must be centred in the Prompt, under the text. Empty = none.")]
+    [SerializeField] private RectTransform background;
+    [Tooltip("Space between the text and the box edge, in canvas pixels.")]
+    [SerializeField] private Vector2 backgroundPadding = new Vector2(36f, 18f);
+
     [Header("Button prompts [LIKE_THIS]")]
     [Tooltip("TMP rich text for a button prompt; {0} is the label.")]
     [SerializeField, TextArea(2, 4)] private string keyFormat =
@@ -228,15 +234,30 @@ public sealed class TutorialPrompts : MonoBehaviour
         return TutorialKey.BindingLabel(action, part);
     }
 
-    // TMP regenerates the mesh on text, size or resolution changes; refresh the wiggle's rest pose.
+    // TMP regenerates the mesh on text, size or resolution changes; refresh the wiggle's rest pose
+    // and fit the background box.
     private void OnTextChanged(Object changed)
     {
         if (changed != text) return;
+        FitBackground();
         hasSpooky = false;
         var info = text.textInfo;
         for (int i = 0; i < info.linkCount; i++)
             if (info.linkInfo[i].GetLinkID() == TutorialPromptMarkup.SpookyLinkId) hasSpooky = true;
         restingVertices = hasSpooky ? info.CopyMeshInfoVertexData() : null;
+    }
+
+    // The text fills the Prompt rect with a centred pivot, so its local bounds map directly
+    // onto the background's anchored position (centred in the same rect).
+    private void FitBackground()
+    {
+        if (background == null) return;
+        bool hasText = text.textInfo.characterCount > 0;
+        background.gameObject.SetActive(hasText);
+        if (!hasText) return;
+        var bounds = text.textBounds;
+        background.anchoredPosition = bounds.center;
+        background.sizeDelta = (Vector2)bounds.size + backgroundPadding * 2f;
     }
 
     private void LateUpdate()

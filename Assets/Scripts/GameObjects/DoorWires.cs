@@ -46,7 +46,7 @@ public class DoorWires : MonoBehaviour
     [Tooltip("Wire color while its switch is in the state that keeps the door closed.")]
     [SerializeField] private Color inactiveColor = Color.red;
 
-    [Tooltip("Sorting order within the switch's sorting layer. Keep above terrain (0) and below the door/switch visuals (4) so wires show over walls but tuck under both ends.")]
+    [Tooltip("Sorting order within the switch's sorting layer. Keep above terrain (0) and below the door (4) and switch (6) visuals so wires show over walls but tuck under both ends.")]
     [SerializeField] private int sortingOrder = 3;
 
     [Header("Routing")]
@@ -70,6 +70,7 @@ public class DoorWires : MonoBehaviour
     {
         public Switch source;
         public SpriteRenderer sourceRenderer;
+        public Collider2D sourceCollider;
         public readonly List<SpriteRenderer> dots = new List<SpriteRenderer>();
         public Vector3 from;
         public Vector3 to;
@@ -82,6 +83,7 @@ public class DoorWires : MonoBehaviour
 
     private Door door;
     private SpriteRenderer doorRenderer;
+    private Collider2D doorCollider;
     private Transform container;
     private readonly List<Wire> wires = new List<Wire>();
     private bool dirty = true;
@@ -180,6 +182,7 @@ public class DoorWires : MonoBehaviour
             DestroySafe(container.GetChild(i).gameObject);
 
         doorRenderer = null;
+        doorCollider = GetComponent<Collider2D>();
         foreach (var sr in GetComponentsInChildren<SpriteRenderer>(true))
         {
             if (sr.transform.IsChildOf(container)) continue;
@@ -193,7 +196,8 @@ public class DoorWires : MonoBehaviour
             wires.Add(new Wire
             {
                 source = s,
-                sourceRenderer = s.GetComponentInChildren<SpriteRenderer>(true)
+                sourceRenderer = s.GetComponentInChildren<SpriteRenderer>(true),
+                sourceCollider = s.GetComponent<Collider2D>()
             });
         }
     }
@@ -203,8 +207,8 @@ public class DoorWires : MonoBehaviour
         if (wire.source == null) return; // WiringChanged rebuilds next frame.
 
         var style = wire.sourceRenderer != null ? wire.sourceRenderer : doorRenderer;
-        Vector3 from = Centre(wire.sourceRenderer, wire.source.transform);
-        Vector3 to = Centre(doorRenderer, transform);
+        Vector3 from = Centre(wire.sourceCollider, wire.source.transform);
+        Vector3 to = Centre(doorCollider, transform);
         int terrainLayer = TerrainLayerFor(style != null ? style.gameObject : wire.source.gameObject);
 
         if (routesDirty || wire.dots.Count == 0 || from != wire.from || to != wire.to || terrainLayer != wire.terrainLayer)
@@ -427,9 +431,11 @@ public class DoorWires : MonoBehaviour
         return sr;
     }
 
-    private static Vector3 Centre(SpriteRenderer renderer, Transform fallback)
+    // Anchored on the collider, not the renderer: door and switch visuals slide/squash while
+    // animating, and following them would re-route the wire every frame.
+    private static Vector3 Centre(Collider2D collider, Transform fallback)
     {
-        return renderer != null ? renderer.bounds.center : fallback.position;
+        return collider != null ? collider.transform.TransformPoint(collider.offset) : fallback.position;
     }
 
     private static void DestroySafe(Object obj)
