@@ -109,13 +109,15 @@ public class Banishable : MonoBehaviour
     }
 
     // Only the target renderer gets the outline -- layered children (SafeBox's fill) sit inside it.
+    // Plane B members can't be banished, so they never glow (e.g. revealed by the preview circle).
     private void ApplyGlow(bool on)
     {
         if (targetRenderer == null) return;
 
         mpb ??= new MaterialPropertyBlock();
         targetRenderer.GetPropertyBlock(mpb);
-        mpb.SetFloat(OutlineAmountId, on && glowWhenAiming ? 1f : 0f);
+        bool glow = on && glowWhenAiming && currentPlane == Plane.A;
+        mpb.SetFloat(OutlineAmountId, glow ? 1f : 0f);
         mpb.SetColor(OutlineColorId, aimGlowColor);
         targetRenderer.SetPropertyBlock(mpb);
     }

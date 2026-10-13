@@ -555,7 +555,16 @@ same plane, the shared boundary opens on both sides. Partial edge contact opens
 only the shared span; corner-only contact opens nothing. Boundaries close again when
 objects separate, change plane, or are disabled or destroyed. If a boundary closes
 through the player, they are moved to the nearest clear pose (never into another
-obstacle) instead of being killed. Ordinary Box behavior is unchanged.
+obstacle) instead of being killed.
+
+Boxes follow the same inside/outside rule as the player. A body with the
+**EntersSafeRegions** component (Box, and SafeBox through the variant) treats a safe
+region (SafeBox or safe terrain) as solid while it is outside, so it rests on top
+or is blocked by its wall. Once it is inside (it fits the region and its center is
+within it, e.g. after a plane swap), the region is hollow for it: it rests on the
+region's floor and can be pushed through open seams into every connected region. A
+container is never inside its own contents. Add EntersSafeRegions to any future
+dynamic object that should behave this way; nothing else needs to change.
 
 Open boundaries also disappear visually in Play mode (`SafeSeams`). Along each open
 span the box frame and its brackets clear to reveal the fill, and safe tiles are
@@ -579,6 +588,13 @@ How it works:
   Unchanged geometry costs no rebuilds.
 - `SafePlayerCollision` filters player movement, wall, and grab queries so support
   colliders never block the player, and resolves boundary closures.
+- `SafeBodyCollision` does the same for EntersSafeRegions bodies with per-pair
+  `Physics2D.IgnoreCollision`, recomputed each physics step after edges rebuild.
+  Outside a region a body collides with its support and ignores its edges (moving
+  SafeBox edges are kinematic and would shove it). Inside, it ignores the supports
+  of that region and of all regions joined to it by open seams, and collides with
+  their edges. Only edges near each body are touched (the 4-unit buckets). Edge
+  sections collide with players and entities (`SafeRegion.EdgeExcludeLayers`).
 - The terrain bake (`TerrainCollision`) also bakes per-cell safe boundary edges. Their
   hidden carrier, *"Safe terrain collision (generated) player edges (generated)"*,
   sits under the Level root beside Ground, **outside** the terrain composites:
@@ -589,6 +605,9 @@ Validation (Unity CLI `run_script`):
 
 - `ValidateSafeBox.cs` (Edit mode): variant, footprint, nonlethal interior, baked
   edges, palette entry/spacing, and actual EntityBrush painting.
+- `ValidateSafeBoxContentsPlay.cs` (Play mode): Box/SafeBox inside SafeBoxes and safe
+  terrain, seam crossing, outside blocking and stacking. Its terrain checks need the
+  `PrepareSafeBoxPlay.cs` fixture and are skipped without it.
 - `ValidateSafeBoxPrototype.cs` (Edit mode): boundary geometry for full/partial/corner
   contact, planes, disable/destroy, multiple neighbors, terrain, and timing.
 - `PrepareSafeBoxPlay.cs` (Edit mode) bakes a temporary terrain fixture; then run

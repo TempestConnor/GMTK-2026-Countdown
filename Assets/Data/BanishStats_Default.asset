@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BanishStats
   armTime: 0.0375
   targetRadius: 2.5
-  returnDelay: 8
+  returnDelay: 30

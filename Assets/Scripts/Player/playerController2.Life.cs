@@ -13,7 +13,7 @@ public partial class playerController2
         inputLock = GetComponent<PlayerInputLock>();
         actions = GetComponent<PlayerActionCancellation>();
         actions.Register(new MovementAction(this));
-        actions.Register(new DashAction(this));
+        // actions.Register(new DashAction(this)); // Dash disabled
         actions.Register(new JumpAction(this));
         actions.Register(new GrabAction(this));
         actions.Register(new AimAction(this));

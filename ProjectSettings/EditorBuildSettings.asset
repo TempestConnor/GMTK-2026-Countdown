@@ -47,5 +47,14 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Level01/Level01_BanishTutorial2.unity
     guid: c9b92e558e0065040bb3f6e647d26706
+  - enabled: 1
+    path: Assets/Scenes/Level02/Level_02_Room_GravityTube.unity
+    guid: b3cc50db0def5844499b4c8ce133fd87
+  - enabled: 1
+    path: Assets/Scenes/Level02/Level02_TwoBoxes.unity
+    guid: a9bbe2c691f9e634f9abdf6176ba53fd
+  - enabled: 1
+    path: Assets/Scenes/Level02/Level02_GravityWave.unity
+    guid: 21563aec5a4888e4d9d607dbce494e14
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

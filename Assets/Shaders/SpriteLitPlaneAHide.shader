@@ -32,14 +32,19 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-PlaneAHide"
     float3 _PreviewCenter;
     float _PreviewRadius;
     float _PreviewEdgeSoftness;
+    // 1 while previewing from Plane A: Plane B art is then clipped to the inside of the circle
+    // instead of popping in everywhere the moment the camera starts rendering Plane B layers.
+    float _PreviewRevealB;
 
     half ComputeHideMask(float3 positionWS)
     {
-    #if defined(_PREVIEW_HIDE_OFF)
-        return 1;
-    #endif
         float dist = length(positionWS.xy - _PreviewCenter.xy);
-        return smoothstep(_PreviewRadius - _PreviewEdgeSoftness, _PreviewRadius, dist);
+        half outside = smoothstep(_PreviewRadius - _PreviewEdgeSoftness, _PreviewRadius, dist);
+    #if defined(_PREVIEW_HIDE_OFF)
+        return lerp(1, 1 - outside, _PreviewRevealB);
+    #else
+        return outside;
+    #endif
     }
 
     // Pure per-fragment UV math, so the animation costs no CPU time, Animator, or mesh rebuild.

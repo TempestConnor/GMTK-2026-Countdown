@@ -29,7 +29,9 @@ public static class ValidateSafeBox
             collider.excludeLayers.value == SafeRegion.PlayerMask);
         int edges = 0;
         foreach (var edge in safeBox.GetComponentsInChildren<EdgeCollider2D>(true))
-            if (region.Owns(edge) && edge.excludeLayers.value == ~SafeRegion.PlayerMask) edges++;
+            // Baked player-only; SafeBoundarySystem widens them to entities at runtime (SafeBodyCollision).
+            if (region.Owns(edge) && (edge.excludeLayers.value == ~SafeRegion.PlayerMask ||
+                edge.excludeLayers.value == SafeRegion.EdgeExcludeLayers)) edges++;
         expect("Four player-only edges on a kinematic child body", edges == 4);
         expect("Ordinary Box is unchanged: no SafeRegion, lethal penetration enabled",
             box.GetComponent<SafeRegion>() == null && box.GetComponent<KillsOnPenetration>().enabled &&

@@ -430,7 +430,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1294764881600683869, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.7557755
+      value: -4.398844
       objectReference: {fileID: 0}
     - target: {fileID: 1294764881600683869, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.y
@@ -470,7 +470,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2411716107746878547, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.24422455
+      value: 0.39884377
       objectReference: {fileID: 0}
     - target: {fileID: 2411716107746878547, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.y
@@ -498,7 +498,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8569750860043802486, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_Size.x
-      value: 67.0503
+      value: 57.535248
       objectReference: {fileID: 0}
     - target: {fileID: 8569750860043802486, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_Size.y
@@ -27073,7 +27073,7 @@ PrefabInstance:
     - target: {fileID: 9173230866175414937, guid: b73122876a1c53940957fa6391b8eadb, type: 3}
       propertyPath: m_TileSpriteArray.Array.data[18].m_Data
       value: 
-      objectReference: {fileID: 1125640962, guid: e4442dcbad3a0f04ea8bcdcd5c79d307, type: 3}
+      objectReference: {fileID: 567641031, guid: e4442dcbad3a0f04ea8bcdcd5c79d307, type: 3}
     - target: {fileID: 9173230866175414937, guid: b73122876a1c53940957fa6391b8eadb, type: 3}
       propertyPath: m_TileAssetArray.Array.data[0].m_RefCount
       value: 443
@@ -37892,7 +37892,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
       propertyPath: text
-      value: Did you know that ~Gravity~ accelerates faster the farther you fall?
+      value: Did you know that ~Gravity~ accelerates you faster the longer you fall?
       objectReference: {fileID: 0}
     - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
       propertyPath: duration

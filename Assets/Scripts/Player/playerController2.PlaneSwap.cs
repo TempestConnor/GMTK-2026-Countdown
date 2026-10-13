@@ -107,6 +107,9 @@ public partial class playerController2
         cam.cullingMask = activePlane == Banishable.Plane.A
             ? (cam.cullingMask | planeAMask) & ~planeBMask
             : (cam.cullingMask | planeBMask) & ~planeAMask;
+
+        // Set alongside the culling swap so plane B never renders a frame clipped to the preview circle.
+        Shader.SetGlobalFloat(PreviewRevealBId, activePlane == Banishable.Plane.A ? 1f : 0f);
     }
 
     private void Update()

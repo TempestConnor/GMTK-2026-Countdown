@@ -25,6 +25,14 @@ MonoBehaviour:
     fromZone: right
     toScene: Assets/Scenes/Level01/Level01_GrabWallJumpTutorial.unity
     toZone: left
+  - fromScene: Assets/Scenes/Level02/Level02_GravityWave.unity
+    fromZone: 
+    toScene: Assets/Scenes/Level02/Level_02_Room_02.unity
+    toZone: left
+  - fromScene: Assets/Scenes/Level02/Level02_GravityWave.unity
+    fromZone: left
+    toScene: Assets/Scenes/Level02/Level_02.unity
+    toZone: start
   - fromScene: Assets/Scenes/Level02/Level_02.unity
     fromZone: start
     toScene: Assets/Scenes/Level02/Level_02_Room_02.unity
@@ -33,6 +41,14 @@ MonoBehaviour:
     fromZone: right
     toScene: Assets/Scenes/Level02/Level_02_Room_SafeTileIntro.unity
     toZone: left
+  - fromScene: Assets/Scenes/Level02/Level_02_Room_GravityTube.unity
+    fromZone: down
+    toScene: Assets/Scenes/Level02/Level_02_Room_SafeBoxIntro.unity
+    toZone: up
+  - fromScene: Assets/Scenes/Level02/Level_02_Room_GravityTube.unity
+    fromZone: up
+    toScene: Assets/Scenes/Level02/Level02_TwoBoxes.unity
+    toZone: down
   - fromScene: Assets/Scenes/Level02/Level_02_Room_SafeBoxIntro.unity
     fromZone: up
     toScene: Assets/Scenes/Level02/Level_02_Room_Ending.unity

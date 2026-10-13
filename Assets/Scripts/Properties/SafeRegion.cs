@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 /// <summary>Authored hollow, nonlethal geometry. The original collider remains physical support for
-/// non-players; players collide only with baked edge sections on a child body, which SafeBoundarySystem
-/// splits where regions touch.</summary>
+/// non-players outside it; players, and boxes inside it (SafeBodyCollision), collide with baked edge
+/// sections on a child body instead, which SafeBoundarySystem splits where regions touch.</summary>
 [DisallowMultipleComponent]
 [DefaultExecutionOrder(50)]
 public sealed class SafeRegion : MonoBehaviour
@@ -28,6 +29,9 @@ public sealed class SafeRegion : MonoBehaviour
     public bool Movable => movable;
     public Boundary[] Boundaries => boundaries;
     public static int PlayerMask => (1 << LayerMask.NameToLayer("Player")) | (1 << LayerMask.NameToLayer("PlayerB"));
+    public static int EntityMask => (1 << LayerMask.NameToLayer("Entities")) | (1 << LayerMask.NameToLayer("EntityB"));
+    /// <summary>Edges touch players and entities only; SafeBodyCollision limits entities to those inside.</summary>
+    public static int EdgeExcludeLayers => ~(PlayerMask | EntityMask);
     /// <summary>True for this region's player-boundary edge sections.</summary>
     public bool Owns(Collider2D collider) => collider != null && boundaryBody != null && collider.attachedRigidbody == boundaryBody;
     public bool Available => isActiveAndEnabled && support != null && support.enabled &&
@@ -61,11 +65,45 @@ public sealed class SafeRegion : MonoBehaviour
 
     public bool Contains(Vector2 worldPoint)
     {
-        // Movable regions are rectangular Box variants; terrain does not participate in grabbing.
-        if (!(support is BoxCollider2D box)) return false;
+        // Movable regions are rectangular Box variants; terrain regions hold exactly the safe cells.
+        if (!(support is BoxCollider2D box)) return TryGetCells(out var map) && map.HasTile(map.WorldToCell(worldPoint));
         Vector2 p = transform.InverseTransformPoint(worldPoint);
         return Mathf.Abs(p.x - box.offset.x) < box.size.x * .5f &&
                Mathf.Abs(p.y - box.offset.y) < box.size.y * .5f;
+    }
+
+    /// <summary>True when world bounds reach more than <paramref name="inset"/> into this region.</summary>
+    public bool Overlaps(Bounds bounds, float inset)
+    {
+        Vector2 min = (Vector2)bounds.min + Vector2.one * inset, max = (Vector2)bounds.max - Vector2.one * inset;
+        if (min.x >= max.x || min.y >= max.y) return false;
+        if (support is BoxCollider2D)
+        {
+            var area = support.bounds;
+            return min.x < area.max.x && max.x > area.min.x && min.y < area.max.y && max.y > area.min.y;
+        }
+        if (!TryGetCells(out var map)) return false;
+        Vector3Int from = map.WorldToCell(min), to = map.WorldToCell(max);
+        for (int y = from.y; y <= to.y; y++)
+        for (int x = from.x; x <= to.x; x++)
+            if (map.HasTile(new Vector3Int(x, y, 0))) return true;
+        return false;
+    }
+
+    /// <summary>Whether a body this size fits inside; a container is never inside its own contents.</summary>
+    public bool Fits(Vector2 size, float tolerance)
+    {
+        if (!(support is BoxCollider2D)) return true; // Terrain regions are open-ended.
+        Vector2 area = support.bounds.size;
+        return size.x <= area.x + tolerance && size.y <= area.y + tolerance;
+    }
+
+    private Tilemap cells;
+    private bool TryGetCells(out Tilemap map)
+    {
+        if (cells == null) TryGetComponent(out cells);
+        map = cells;
+        return map != null;
     }
 
     internal EdgeCollider2D GetBakedEdge(int index) => index < bakedEdges.Count ? bakedEdges[index] : CreateEdge();
@@ -75,7 +113,7 @@ public sealed class SafeRegion : MonoBehaviour
         child.transform.SetParent(boundaryBody != null ? boundaryBody.transform : transform, false);
         child.layer = gameObject.layer;
         var edge = child.AddComponent<EdgeCollider2D>();
-        edge.excludeLayers = ~PlayerMask;
+        edge.excludeLayers = EdgeExcludeLayers;
         edge.sharedMaterial = support.sharedMaterial;
         edge.edgeRadius = 0;
         bakedEdges.Add(edge);

@@ -29,12 +29,17 @@ Shader "Universal Render Pipeline/2D/Sprite-Lit-Saturation"
     float3 _PreviewCenter;
     float _PreviewRadius;
     float _PreviewEdgeSoftness;
+    // 1 while previewing from Plane A: Plane B instances (desaturated) are then clipped to the
+    // inside of the circle instead of showing everywhere once the camera renders Plane B layers.
+    float _PreviewRevealB;
 
     half ComputePreviewHideMask(float3 positionWS, half saturation, half hideEligible)
     {
-        if (hideEligible < 0.5 || saturation < 0.5) return 1;
+        if (hideEligible < 0.5) return 1;
         float dist = length(positionWS.xy - _PreviewCenter.xy);
-        return smoothstep(_PreviewRadius - _PreviewEdgeSoftness, _PreviewRadius, dist);
+        half outside = smoothstep(_PreviewRadius - _PreviewEdgeSoftness, _PreviewRadius, dist);
+        if (saturation < 0.5) return lerp(1, 1 - outside, _PreviewRevealB);
+        return outside;
     }
     ENDHLSL
 

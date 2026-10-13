@@ -106,6 +106,7 @@ GameObject:
   - component: {fileID: 241848594997248109}
   - component: {fileID: 7729713288062808884}
   - component: {fileID: 1355539015563371793}
+  - component: {fileID: 7549543670148966827}
   m_Layer: 8
   m_Name: Box
   m_TagString: Untagged
@@ -218,6 +219,7 @@ MonoBehaviour:
   layerOnA: 8
   layerOnB: 12
   targetRenderer: {fileID: 4619912594871944503}
+  glowWhenAiming: 1
   onPlaneChanged:
     m_PersistentCalls:
       m_Calls: []
@@ -246,3 +248,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e65df399738e20541a2abd3ebf044ee5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Pushable
+--- !u!114 &7549543670148966827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5916292814736474954}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a97d4d344d5fc1847a0f09ef7b92b4fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EntersSafeRegions

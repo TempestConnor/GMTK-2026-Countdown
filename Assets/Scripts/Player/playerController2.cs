@@ -32,7 +32,7 @@ public partial class playerController2 : MonoBehaviour
     public bool canWallJump;
     Vector2 wallJumpDirection;
 
-    Vector2 dashDirection;
+    // Vector2 dashDirection; // Dash disabled
 
 
     Rigidbody2D rb;
@@ -169,18 +169,19 @@ public partial class playerController2 : MonoBehaviour
 
 
 
-        // Enable dash when on the ground
-        if (touchingDirection.isGrounded && !isDashing)
-        {
-            canDash = true;
-        }
+        // Dash disabled
+        // // Enable dash when on the ground
+        // if (touchingDirection.isGrounded && !isDashing)
+        // {
+        //     canDash = true;
+        // }
 
-        // maxDashSpeed implementation
-        if (isDashing && rb.linearVelocity.y * GravityUpSign > stats.maxDashSpeed)
-        {
-            rb.linearVelocity = new Vector2(rb.linearVelocity.x, GravityUpSign * Mathf.Min(rb.linearVelocity.y * GravityUpSign, stats.maxDashSpeed));
-            Debug.Log("maxDash triggered");
-        }
+        // // maxDashSpeed implementation
+        // if (isDashing && rb.linearVelocity.y * GravityUpSign > stats.maxDashSpeed)
+        // {
+        //     rb.linearVelocity = new Vector2(rb.linearVelocity.x, GravityUpSign * Mathf.Min(rb.linearVelocity.y * GravityUpSign, stats.maxDashSpeed));
+        //     Debug.Log("maxDash triggered");
+        // }
 
         // Wall slide code
         if (touchingDirection.isOnWall && !touchingDirection.isGrounded)
@@ -208,19 +209,20 @@ public partial class playerController2 : MonoBehaviour
             wallJumpDirection = isFacingRight ? Vector2.right : Vector2.left;
         }
 
-        // Check for Dash direction
-        if (moveInput != Vector2.zero)
-        {
-            dashDirection = moveInput;
-        }
-        else if (isSliding && !isMoving)
-        {
-            dashDirection = wallJumpDirection;
-        }
-        else
-        {
-            dashDirection = isFacingRight ? Vector2.right  : Vector2.left;
-        }
+        // Dash disabled
+        // // Check for Dash direction
+        // if (moveInput != Vector2.zero)
+        // {
+        //     dashDirection = moveInput;
+        // }
+        // else if (isSliding && !isMoving)
+        // {
+        //     dashDirection = wallJumpDirection;
+        // }
+        // else
+        // {
+        //     dashDirection = isFacingRight ? Vector2.right  : Vector2.left;
+        // }
 
 
 

@@ -29,18 +29,56 @@ static class EntityPlaneAutoAssign
 {
     const string EntityPrefabFolder = "Assets/Prefabs/Entities/";
     const string PlaneAHideMaterialPath = "Assets/Materials/SpriteLitPlaneAHide.mat";
-    const string PlaneANormalMaterialPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Lit-Default.mat";
+    const string PlaneBRevealMaterialPath = "Assets/Materials/SpriteLitPlaneBReveal.mat";
+    // Older Plane B instances were painted with stock Sprite-Lit-Default, which ignores the preview
+    // circle entirely (so they pop in everywhere the moment preview starts). Still recognized so
+    // they get migrated to PlaneBRevealMaterialPath on the next sync.
+    const string LegacyPlaneBMaterialPath = "Packages/com.unity.render-pipelines.universal/Runtime/Materials/Sprite-Lit-Default.mat";
 
-    // Plane A (preview-hidden) / Plane B (always visible) material pairs kept in sync by layer.
+    // Plane A (hidden inside the preview circle) / Plane B (shown only inside it while previewing
+    // from Plane A) material pairs kept in sync by layer.
     static readonly (string planeA, string planeB)[] MaterialPairs =
     {
-        (PlaneAHideMaterialPath, PlaneANormalMaterialPath),
+        (PlaneAHideMaterialPath, PlaneBRevealMaterialPath),
         ("Assets/Materials/GravityAreaConveyor.mat", "Assets/Materials/GravityAreaConveyorB.mat"),
     };
 
     static EntityPlaneAutoAssign()
     {
         ObjectChangeEvents.changesPublished += OnChangesPublished;
+    }
+
+    [MenuItem("Tools/Plane Preview/Resync Entity Materials In Open Scenes")]
+    static void ResyncOpenScenes()
+    {
+        int count = 0;
+        for (int i = 0; i < UnityEngine.SceneManagement.SceneManager.sceneCount; i++)
+        {
+            var scene = UnityEngine.SceneManagement.SceneManager.GetSceneAt(i);
+            if (!scene.isLoaded)
+                continue;
+
+            foreach (var go in scene.GetRootGameObjects())
+            foreach (var t in go.GetComponentsInChildren<Transform>(true))
+            {
+                if (!PrefabUtility.IsOutermostPrefabInstanceRoot(t.gameObject) || !IsEntityPrefabInstance(t.gameObject))
+                    continue;
+
+                SyncPreviewMaterials(t.gameObject);
+                count++;
+            }
+        }
+        Debug.Log($"[EntityPlaneAutoAssign] Resynced preview materials on {count} entity instance(s). Save the scene(s) to keep the changes.");
+    }
+
+    static bool IsEntityPrefabInstance(GameObject root)
+    {
+        var source = PrefabUtility.GetCorrespondingObjectFromSource(root) as GameObject;
+        if (source == null)
+            return false;
+
+        var assetPath = AssetDatabase.GetAssetPath(source);
+        return !string.IsNullOrEmpty(assetPath) && assetPath.StartsWith(EntityPrefabFolder, StringComparison.Ordinal);
     }
 
     static void OnChangesPublished(ref ObjectChangeEventStream stream)
@@ -61,12 +99,7 @@ static class EntityPlaneAutoAssign
             if (root == null || EditorUtility.IsPersistent(root))
                 continue;
 
-            var source = PrefabUtility.GetCorrespondingObjectFromSource(root) as GameObject;
-            if (source == null)
-                continue;
-
-            var assetPath = AssetDatabase.GetAssetPath(source);
-            if (string.IsNullOrEmpty(assetPath) || !assetPath.StartsWith(EntityPrefabFolder, StringComparison.Ordinal))
+            if (!IsEntityPrefabInstance(root))
                 continue;
 
             if (paintingPlaneB)
@@ -78,20 +111,23 @@ static class EntityPlaneAutoAssign
 
     // Normalizes any plain (non-PlaneAware) sprite's material to match its final layer --
     // the Plane A material of its MaterialPairs entry on Plane A (Ground/Entities), the Plane B one
-    // on Plane B (GroundB/EntityB), e.g. SpriteLitPlaneAHide <-> stock Sprite-Lit-Default. Only touches
+    // on Plane B (GroundB/EntityB), e.g. SpriteLitPlaneAHide <-> SpriteLitPlaneBReveal. Only touches
     // renderers already on a paired material, so Banishable's PlaneAware/PlaneAwareGray sprites
     // (and anything else deliberate) are untouched.
     static void SyncPreviewMaterials(GameObject root)
     {
         int groundLayer = LayerMask.NameToLayer("Ground");
         int entitiesLayer = LayerMask.NameToLayer("Entities");
+        int groundBLayer = LayerMask.NameToLayer("GroundB");
+        int entityBLayer = LayerMask.NameToLayer("EntityB");
 
         foreach (var sr in root.GetComponentsInChildren<SpriteRenderer>(true))
         {
-            if (!TryGetPair(sr.sharedMaterial, out var hideMat, out var normalMat))
+            bool isPlaneA = sr.gameObject.layer == groundLayer || sr.gameObject.layer == entitiesLayer;
+            bool isPlaneB = sr.gameObject.layer == groundBLayer || sr.gameObject.layer == entityBLayer;
+            if (!TryGetPair(sr.sharedMaterial, isPlaneB, out var hideMat, out var normalMat))
                 continue;
 
-            bool isPlaneA = sr.gameObject.layer == groundLayer || sr.gameObject.layer == entitiesLayer;
             var wanted = isPlaneA ? hideMat : normalMat;
             if (sr.sharedMaterial == wanted)
                 continue;
@@ -102,7 +138,7 @@ static class EntityPlaneAutoAssign
         }
     }
 
-    static bool TryGetPair(Material current, out Material planeA, out Material planeB)
+    static bool TryGetPair(Material current, bool isPlaneB, out Material planeA, out Material planeB)
     {
         planeA = planeB = null;
         if (current == null)
@@ -112,7 +148,13 @@ static class EntityPlaneAutoAssign
         {
             var a = AssetDatabase.LoadAssetAtPath<Material>(pathA);
             var b = AssetDatabase.LoadAssetAtPath<Material>(pathB);
-            if (a == null || b == null || (current != a && current != b))
+            if (a == null || b == null)
+                continue;
+
+            // Only on Plane B layers -- Sprite-Lit-Default anywhere else is a deliberate choice.
+            bool isLegacyB = isPlaneB && pathA == PlaneAHideMaterialPath
+                && current == AssetDatabase.LoadAssetAtPath<Material>(LegacyPlaneBMaterialPath);
+            if (current != a && current != b && !isLegacyB)
                 continue;
 
             planeA = a;

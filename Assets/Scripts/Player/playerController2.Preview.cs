@@ -23,6 +23,7 @@ public partial class playerController2
     private static readonly int PreviewRadiusId = Shader.PropertyToID("_PreviewRadius");
     private static readonly int PreviewEdgeSoftnessId = Shader.PropertyToID("_PreviewEdgeSoftness");
     private static readonly int PreviewHideEligibleId = Shader.PropertyToID("_PreviewHideEligible");
+    private static readonly int PreviewRevealBId = Shader.PropertyToID("_PreviewRevealB");
 
     private bool isPreviewHeld;
     private float previewRadius;
@@ -62,10 +63,15 @@ public partial class playerController2
 
         // Only manage plane B's culling bits ourselves while actually on plane A -- once fully
         // swapped, PlaneSwap.cs's UpdateCameraVisibility already owns them, don't fight it.
-        if (planeMember.CurrentPlane == Banishable.Plane.A)
+        bool onPlaneA = planeMember.CurrentPlane == Banishable.Plane.A;
+        if (onPlaneA)
         {
             SetPlaneBVisibleForPreview(previewRadius > 0f);
         }
+
+        // Un-culling plane B shows all of it at once; this clips plane B art to the circle so it
+        // only appears where the reveal has reached. Off on plane B, where it renders normally.
+        Shader.SetGlobalFloat(PreviewRevealBId, onPlaneA ? 1f : 0f);
 
         Shader.SetGlobalVector(PreviewCenterId, transform.position);
         Shader.SetGlobalFloat(PreviewRadiusId, previewRadius);

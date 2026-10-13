@@ -618,6 +618,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: RoomTransition
       objectReference: {fileID: 0}
+    - target: {fileID: 1755852300224139838, guid: fd588a10fe95f5145b9c8c9d9164b79e, type: 3}
+      propertyPath: zoneId
+      value: left
+      objectReference: {fileID: 0}
+    - target: {fileID: 1755852300224139838, guid: fd588a10fe95f5145b9c8c9d9164b79e, type: 3}
+      propertyPath: destinationZone
+      value: start
+      objectReference: {fileID: 0}
+    - target: {fileID: 1755852300224139838, guid: fd588a10fe95f5145b9c8c9d9164b79e, type: 3}
+      propertyPath: destinationScene
+      value: Assets/Scenes/Level02/Level_02.unity
+      objectReference: {fileID: 0}
     - target: {fileID: 2110245553165369555, guid: fd588a10fe95f5145b9c8c9d9164b79e, type: 3}
       propertyPath: m_LocalPosition.x
       value: 3.500001
@@ -4449,6 +4461,83 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3347137528716831693, guid: fb386dabb602e6d4e8d94fd9e1af71ac, type: 3}
   m_PrefabInstance: {fileID: 1500757413}
   m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1657328525
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2983136522927568984, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_Name
+      value: TutorialPromptZone
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 3.4545598
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.9192
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.9192
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -14.51
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -6.96
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: text
+      value: ~Time~ slows when you [@Aim] Aim.
+      objectReference: {fileID: 0}
+    - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: duration
+      value: 6
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
 --- !u!4 &1663783714 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3347137528716831693, guid: fb386dabb602e6d4e8d94fd9e1af71ac, type: 3}
@@ -5290,7 +5379,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1294764881600683869, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.6010771
+      value: -1.0419884
       objectReference: {fileID: 0}
     - target: {fileID: 1294764881600683869, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.y
@@ -5330,7 +5419,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2411716107746878547, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.39892292
+      value: -0.9580116
       objectReference: {fileID: 0}
     - target: {fileID: 2411716107746878547, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.y
@@ -5358,7 +5447,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8569750860043802486, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_Size.x
-      value: 67.0503
+      value: 57.535248
       objectReference: {fileID: 0}
     - target: {fileID: 8569750860043802486, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_Size.y
@@ -5853,6 +5942,14 @@ PrefabInstance:
     - target: {fileID: 1363420259120804940, guid: fd588a10fe95f5145b9c8c9d9164b79e, type: 3}
       propertyPath: m_Name
       value: RoomTransition
+      objectReference: {fileID: 0}
+    - target: {fileID: 1755852300224139838, guid: fd588a10fe95f5145b9c8c9d9164b79e, type: 3}
+      propertyPath: destinationZone
+      value: left
+      objectReference: {fileID: 0}
+    - target: {fileID: 1755852300224139838, guid: fd588a10fe95f5145b9c8c9d9164b79e, type: 3}
+      propertyPath: destinationScene
+      value: Assets/Scenes/Level02/Level_02_Room_02.unity
       objectReference: {fileID: 0}
     - target: {fileID: 2350246804050689268, guid: fd588a10fe95f5145b9c8c9d9164b79e, type: 3}
       propertyPath: m_LocalPosition.x
@@ -38032,3 +38129,4 @@ SceneRoots:
   - {fileID: 1815482382}
   - {fileID: 2022573019}
   - {fileID: 1892527772}
+  - {fileID: 1657328525}

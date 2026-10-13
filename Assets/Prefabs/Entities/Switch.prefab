@@ -186,7 +186,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Switch
   activatorLayers:
     serializedVersion: 2
-    m_Bits: 384
+    m_Bits: 6528
   visual: {fileID: 3797762373013344477}
   pressedHeight: 0.5
   pressDuration: 0.08

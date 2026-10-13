@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: PreviewStats_Default
   m_EditorClassIdentifier: Assembly-CSharp::PreviewStats
   expansionSpeed: 40
-  maxRadius: 18
-  edgeSoftness: 0.5
+  maxRadius: 12
+  edgeSoftness: 0.1

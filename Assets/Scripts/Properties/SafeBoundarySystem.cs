@@ -57,7 +57,10 @@ public sealed class SafeBoundarySystem : MonoBehaviour
         for (int i = region.Edges.Count; i < region.Boundaries.Length; i++)
         {
             var edge = new Edge { owner = region, local = region.Boundaries[i] };
-            edge.colliders.Add(region.GetBakedEdge(i));
+            var baked = region.GetBakedEdge(i);
+            // Scenes may hold edges baked before boxes collided with them; SafeBodyCollision filters per body.
+            baked.excludeLayers = SafeRegion.EdgeExcludeLayers;
+            edge.colliders.Add(baked);
             region.Edges.Add(edge);
         }
         instance.UpdateRegion(region);
@@ -103,6 +106,8 @@ public sealed class SafeBoundarySystem : MonoBehaviour
                 if (edge.owner.Movable) seamRegions.Add(edge.owner);
             }
             dirty.Clear();
+            // Bodies pick support or edges from the openings just rebuilt, before physics steps.
+            SafeBodyCollision.Resolve(regions);
             SafePlayerCollision.ResolveClosures(changed);
             // Seams are visual only; they follow the openings once collision is settled.
             foreach (var region in seamRegions) SafeSeams.Refresh(region);
@@ -127,6 +132,15 @@ public sealed class SafeBoundarySystem : MonoBehaviour
         }
         region.LastLayer = region.gameObject.layer;
         region.LastMatrix = region.transform.localToWorldMatrix;
+    }
+
+    /// <summary>Indexed edges whose buckets intersect the given world rect.</summary>
+    internal static void QueryEdges(Vector2 min, Vector2 max, HashSet<Edge> output)
+    {
+        if (instance == null) return;
+        for (int y = Mathf.FloorToInt(min.y / BucketSize); y <= Mathf.FloorToInt(max.y / BucketSize); y++)
+        for (int x = Mathf.FloorToInt(min.x / BucketSize); x <= Mathf.FloorToInt(max.x / BucketSize); x++)
+            if (instance.buckets.TryGetValue(new Vector2Int(x, y), out var bucket)) output.UnionWith(bucket);
     }
 
     private void Insert(Edge edge)
