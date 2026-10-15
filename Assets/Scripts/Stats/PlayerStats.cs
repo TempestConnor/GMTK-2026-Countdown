@@ -26,8 +26,8 @@ public class PlayerStats : ScriptableObject
     public float wallJumpBounceDuration = 0.15f;
     [Tooltip("Horizontal velocity applied away from the wall when performing a wall jump.")]
     public float wallJumpBounceForce = 11f;
-    [Tooltip("How long (in seconds) after leaving a wall the player can still perform a wall jump (coyote-time style grace window).")]
-    public float wallJumpWindow = 0f;
+    [Tooltip("How many physics frames (FixedUpdate steps) after leaving a wall slide the player can still perform a wall jump (coyote-time style grace window).")]
+    [Min(0)] public int wallJumpWindowFrames = 5;
 
     [Space]
     [Header("Dash Settings")]

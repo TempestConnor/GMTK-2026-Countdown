@@ -5265,7 +5265,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1755852300224139838, guid: fd588a10fe95f5145b9c8c9d9164b79e, type: 3}
       propertyPath: destinationScene
-      value: Assets/Scenes/Level02/Level_02_Room_Ending.unity
+      value: Assets/Scenes/Level02/Level_02_Room_GravityTube.unity
       objectReference: {fileID: 0}
     - target: {fileID: 1833072778340903327, guid: fd588a10fe95f5145b9c8c9d9164b79e, type: 3}
       propertyPath: m_LocalScale.x

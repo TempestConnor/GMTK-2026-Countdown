@@ -20,7 +20,7 @@ MonoBehaviour:
   wallJumpGravity: 1
   wallJumpBounceDuration: 0.3
   wallJumpBounceForce: 7
-  wallJumpWindow: 0
+  wallJumpWindowFrames: 5
   dashSpeed: 14
   dashDuration: 0.25
   maxDashSpeed: 14

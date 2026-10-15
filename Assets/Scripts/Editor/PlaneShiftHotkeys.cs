@@ -23,6 +23,23 @@ static class PlaneShiftHotkeys
     {
         // Ensure the Scene view starts in a consistent state (Plane A visible) on domain reload.
         Tools.visibleLayers = (Tools.visibleLayers | LayerMaskFor(PlaneALayers)) & ~LayerMaskFor(PlaneBLayers);
+
+        ResetPreviewShaderGlobals();
+        EditorApplication.playModeStateChanged += state =>
+        {
+            if (state == PlayModeStateChange.EnteredEditMode) ResetPreviewShaderGlobals();
+        };
+    }
+
+    // playerController2's plane preview drives these shader globals at runtime, and Unity doesn't
+    // reset globals on leaving Play Mode. Exiting while on Plane A leaves _PreviewRevealB = 1 with
+    // _PreviewRadius = 0, which clips every Plane B (desaturated) material to an empty circle --
+    // GroundB/BackgroundB turn fully transparent in the Scene view. Restore the "no preview" state.
+    static void ResetPreviewShaderGlobals()
+    {
+        Shader.SetGlobalFloat("_PreviewRevealB", 0f);
+        Shader.SetGlobalFloat("_PreviewRadius", 0f);
+        SceneView.RepaintAll();
     }
 
     [Shortcut("Plane Shift/Show Plane A", KeyCode.Alpha1)]

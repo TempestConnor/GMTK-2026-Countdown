@@ -430,7 +430,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1294764881600683869, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -4.398844
+      value: -1.7557755
       objectReference: {fileID: 0}
     - target: {fileID: 1294764881600683869, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.y
@@ -470,7 +470,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2411716107746878547, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.39884377
+      value: -0.24422455
       objectReference: {fileID: 0}
     - target: {fileID: 2411716107746878547, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.y
@@ -498,7 +498,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8569750860043802486, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_Size.x
-      value: 57.535248
+      value: 67.0503
       objectReference: {fileID: 0}
     - target: {fileID: 8569750860043802486, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_Size.y
@@ -37766,11 +37766,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1755852300224139838, guid: fd588a10fe95f5145b9c8c9d9164b79e, type: 3}
       propertyPath: destinationZone
-      value: left
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 1755852300224139838, guid: fd588a10fe95f5145b9c8c9d9164b79e, type: 3}
       propertyPath: destinationScene
-      value: Assets/Scenes/Level02/Level_02_Room_02.unity
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 2350246804050689268, guid: fd588a10fe95f5145b9c8c9d9164b79e, type: 3}
       propertyPath: m_LocalPosition.x

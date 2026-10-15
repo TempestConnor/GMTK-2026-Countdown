@@ -189,12 +189,18 @@ public partial class playerController2 : MonoBehaviour
             performWallSlide();
 
             canWallJump = true;
+            wallJumpGraceFrames = 0;
         }
         else if (isSliding && (!touchingDirection.isOnWall || touchingDirection.isGrounded))
         {
-            if (wallWindowCoroutine != null) StopCoroutine(wallWindowCoroutine);
-            wallWindowCoroutine = StartCoroutine(wallJumpWait());
+            // Start the wall-jump grace window; wallJumpDirection keeps its away-from-wall value.
             isSliding = false;
+            wallJumpGraceFrames = stats.wallJumpWindowFrames;
+            canWallJump = wallJumpGraceFrames > 0;
+        }
+        else if (wallJumpGraceFrames > 0 && --wallJumpGraceFrames == 0)
+        {
+            canWallJump = false;
         }
 
 
@@ -203,8 +209,7 @@ public partial class playerController2 : MonoBehaviour
         {
             wallJumpDirection = isFacingRight ? Vector2.left : Vector2.right;
         }
-        // This serves wallJumpWait()
-        else if (!isSliding)
+        else if (wallJumpGraceFrames == 0)
         {
             wallJumpDirection = isFacingRight ? Vector2.right : Vector2.left;
         }
