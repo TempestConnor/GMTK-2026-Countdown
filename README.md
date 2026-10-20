@@ -463,6 +463,8 @@ draw Scene-view gizmos (yellow = prompt with its text, red = dismiss with lines 
     that appears only if the player is still stuck).
   - **Complete Action** / **Complete Hold Time**: an action from `playerActions.inputactions`
     (e.g. `Aim`) that completes the prompt once held that long (`0` = a press).
+  - **Complete On Return**: completes the prompt when the player returns banished objects
+    from the Shadow Realm (`playerController2.BanishReturned`), even while it is still queued.
   - **Then Show**: prompts shown when this one completes by its action or duration
     (not when dismissed), for step-by-step instructions.
   - **Replaces**: prompts dismissed when this one is triggered, so it does not wait behind them.
@@ -484,8 +486,8 @@ filtered zones with `[A]`/`[B]`.
 
 Example: Level01_BanishTutorial1 (`Tools/Validation/SetupBanishTutorial1Prompts.cs` places
 it, `ValidateBanishTutorial1Play.cs` checks it in Play mode). The Aim prompt chains to the
-Banish prompt, the first successful banish shows the Return prompt that replaces both (zone B
-just dismisses them), the ledge zone shows "BANISH YOURSELF" after a 30 s delay, and dying shows
+Banish prompt, the first successful banish shows the Return prompt that replaces both and stays
+until the player returns the banished objects (zone B just dismisses the first two), the ledge zone shows "BANISH YOURSELF" after a 30 s delay, and dying shows
 "Slamming your face into a wall kills you" on respawn.
 
 Only one prompt shows at a time; a prompt triggered while another is up waits for it.
@@ -493,8 +495,9 @@ Text markup:
 
 | Markup | Result |
 |---|---|
-| `[RIGHT_CLICK]` | Button prompt "RIGHT CLICK" (underscores become spaces) |
-| `[@Aim]`, `[@Move/left]` | Button prompt with that action's current key/mouse binding |
+| `[SPACE_BAR]` | Button prompt "SPACE BAR" (underscores become spaces) |
+| `[LEFT_CLICK]`, `[RIGHT_CLICK]`, `[MIDDLE_CLICK]` (or `[LMB]`...) | Mouse icon with that button highlighted |
+| `[@Aim]`, `[@Move/left]` | Button prompt with that action's current key binding, or a mouse icon for mouse buttons |
 | `~text~` | Spooky: tinted, and each letter wiggles |
 | `\~`, `\[`, `\\` | Literal character |
 
@@ -508,6 +511,15 @@ wiggle strength on the root's `TutorialPrompts` component. Timing uses unscaled 
 the aim slow-motion does not stretch it. Code can also call `TutorialPrompts.Show/Dismiss`.
 `Tools/Validation/SetupTutorialPrompts.cs` builds missing prefabs (display and the three zones);
 `ValidateTutorialPrompts.cs` checks markup, prefab wiring and that the zones stay off the palette.
+Mouse icons are the TMP sprite asset `Assets/Resources/Sprite Assets/MouseIcons.asset` (sheet
+`Assets/Tiles/Sprites/MouseIcons.png`), drawn and built by `Tools/Validation/SetupMouseIcons.cs`;
+edit its colours, shape or size (glyph scale) there and re-run it. Painted `TutorialKey`s with a
+mouse binding show the icon without a keycap.
+
+The same prefab holds the **tutorial log** (`TutorialLog`): a history of shown prompts behind the
+paper icon in the bottom-right corner. It starts hidden; new entries light the icon's unread dot.
+The panel sits above the prompt band and grows up to **Max Height** before scrolling.
+`Tools/Validation/SetupLogIcon.cs` draws the icon and places the panel.
 
 ### Pushable objects
 

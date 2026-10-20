@@ -7,7 +7,7 @@ using UnityEngine.Tilemaps;
 
 // Places the on-screen banish tutorial in Level01_BanishTutorial1 under LevelTemplate > Entities:
 //   Zone A (spawn area)      -> "Hold [@Aim] to Aim." until Aim is held, then the banish prompt.
-//   First successful banish  -> "Banished objects return..." (replaces the first two).
+//   First successful banish  -> "Banished objects..." until the player returns them (replaces the first two).
 //   Zone B (past the door)   -> dismisses the first two.
 //   Zone C (block-top ledge) -> after 30 real seconds, "BANISH YOURSELF" for 5 s.
 //   Respawn after a death    -> "Slamming your face into a wall kills you" first.
@@ -57,8 +57,10 @@ public static class SetupBanishTutorial1Prompts
         aim.thenShow = new List<TutorialPromptZone> { banish };
 
         var giveBack = Prompt("Prompt_Return", ZoneACell, ZoneASize);
-        giveBack.text = "~Banished~ objects return after a few seconds, or after pressing [@Fire].";
-        giveBack.duration = 6f;
+        giveBack.text = "~Banished~ objects gets sent to the ~Shadow Realm~. 
+Press [@Fire] to return ~Banished~ objects.";
+        giveBack.duration = 0f;
+        giveBack.completeOnReturn = true;
         giveBack.showOnEnter = false;
         giveBack.showOnBanish = true;
         giveBack.replaces = new List<TutorialPromptZone> { aim, banish };

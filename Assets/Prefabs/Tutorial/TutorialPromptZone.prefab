@@ -101,5 +101,7 @@ MonoBehaviour:
   delay: 0
   completeAction: 
   completeHoldTime: 0
-  thenShow: []
+  completeOnReturn: 0
+  thenShow:
+  - {fileID: 0}
   replaces: []

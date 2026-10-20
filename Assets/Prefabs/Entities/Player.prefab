@@ -386,7 +386,8 @@ MonoBehaviour:
   outline: {fileID: 0}
   radius: 0.4
   outlineSegments: 32
-  color: {r: 0, g: 1, b: 1, a: 1}
+  color: {r: 1, g: 0.84, b: 0, a: 1}
+  recallBadge: {fileID: -4340203508431163189, guid: d738adc371dc53744ab81f04367cff7e, type: 3}
 --- !u!1 &7130342556206892078
 GameObject:
   m_ObjectHideFlags: 0

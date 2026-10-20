@@ -6,7 +6,8 @@ using UnityEngine;
 /// Inside (it fits the region and its center is within it, or it still overlaps a region it was inside)
 /// it ignores the support of that region and of every region joined to it by open seams, and collides
 /// with their edges instead, so it moves through the merged hollow space. Runs from SafeBoundarySystem
-/// after edge sections are rebuilt, before the physics step.</summary>
+/// after edge sections are rebuilt, before the physics step. The player is registered too, so a SafeBox
+/// rests on an outside player like an ordinary box; fixed regions keep the player's own rule (Apply).</summary>
 public static class SafeBodyCollision
 {
     private sealed class Occupant
@@ -154,9 +155,12 @@ public static class SafeBodyCollision
     private static void Apply(Occupant occupant, List<SafeRegion> regions)
     {
         if (!Active(occupant)) return;
+        // Players keep their own rule for fixed (terrain) regions: the support excludes the player layers
+        // and the edges are always solid. Only movable SafeBoxes switch between support and edges.
+        bool player = (SafeRegion.PlayerMask & (1 << occupant.body.gameObject.layer)) != 0;
         foreach (var region in regions)
         {
-            if (region == occupant.self || region.Support == null) continue;
+            if (region == occupant.self || region.Support == null || (player && !region.Movable)) continue;
             // Two SafeBoxes share one support pair; ignore it if either is inside the other.
             bool ignore = occupant.inside.Contains(region) || (occupant.self != null &&
                 byRegion.TryGetValue(region, out var other) && other.inside.Contains(occupant.self));
@@ -168,6 +172,7 @@ public static class SafeBodyCollision
         SafeBoundarySystem.QueryEdges((Vector2)bounds.min - reach, (Vector2)bounds.max + reach, nearby);
         foreach (var edge in nearby)
         {
+            if (player && !edge.owner.Movable) continue;
             // Own edges never touch their own body; others' edges only contain bodies inside them.
             bool ignore = edge.owner == occupant.self || !occupant.inside.Contains(edge.owner);
             foreach (var col in edge.colliders) Set(occupant, col, ignore);

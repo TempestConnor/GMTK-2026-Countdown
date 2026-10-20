@@ -24,6 +24,7 @@ public static class GameProgress
         }
         Time.timeScale = 1;
         RoomTravel.ClearSession();
+        TutorialLog.Clear();
         SceneManager.LoadScene(path);
         return true;
     }
@@ -53,6 +54,7 @@ public static class GameProgress
     {
         if (RoomTravel.IsLoading) return;
         RoomTravel.ClearSession();
+        TutorialLog.Clear();
         Time.timeScale = 1;
         SceneManager.LoadScene(MenuScene);
     }

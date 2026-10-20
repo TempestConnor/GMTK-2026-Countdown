@@ -8,8 +8,9 @@ using UnityEngine.InputSystem;
 /// <see cref="showOnBanish"/>; after dying in the room, with <see cref="showAfterDeath"/>; or when
 /// another prompt or a <see cref="TutorialTriggerZone"/> shows it). If another prompt is on screen, this one waits
 /// for it. It leaves after <see cref="duration"/>, when the player performs
-/// <see cref="completeAction"/>, or when it is dismissed, whichever comes first. Completing by
-/// action or duration then shows the <see cref="thenShow"/> prompts.
+/// <see cref="completeAction"/> (or returns a banish, with <see cref="completeOnReturn"/>), or when
+/// it is dismissed, whichever comes first. Completing by action, return or duration then shows the
+/// <see cref="thenShow"/> prompts.
 /// </summary>
 public sealed class TutorialPromptZone : TutorialZone
 {
@@ -31,6 +32,8 @@ public sealed class TutorialPromptZone : TutorialZone
     public string completeAction;
     [Tooltip("Real-time seconds the action must be held to complete. 0 = a press.")]
     [Min(0f)] public float completeHoldTime;
+    [Tooltip("Completes when the player returns banished objects from the Shadow Realm, even while still queued.")]
+    public bool completeOnReturn;
 
     [Header("Chaining")]
     [Tooltip("Prompts shown once this one completes, by its action or its duration running out (not when dismissed).")]
@@ -39,6 +42,7 @@ public sealed class TutorialPromptZone : TutorialZone
     public List<TutorialPromptZone> replaces = new List<TutorialPromptZone>();
 
     private bool awaitingAction;
+    private bool awaitingReturn;
     private float pressedSince = -1f;
     private Coroutine delayed;
 
@@ -53,12 +57,28 @@ public sealed class TutorialPromptZone : TutorialZone
         if (showAfterDeath && RoomTravel.ArrivedByRespawn) Show();
     }
 
-    private void OnEnable() => playerController2.BanishFired += OnBanishFired;
-    private void OnDisable() => playerController2.BanishFired -= OnBanishFired;
+    private void OnEnable()
+    {
+        playerController2.BanishFired += OnBanishFired;
+        playerController2.BanishReturned += OnBanishReturned;
+    }
+
+    private void OnDisable()
+    {
+        playerController2.BanishFired -= OnBanishFired;
+        playerController2.BanishReturned -= OnBanishReturned;
+    }
 
     private void OnBanishFired(playerController2 player)
     {
         if (showOnBanish) Show();
+    }
+
+    private void OnBanishReturned(playerController2 player)
+    {
+        if (!awaitingReturn) return;
+        TutorialPrompts.Dismiss(this);
+        Complete();
     }
 
     /// <summary>Shows this prompt unless it has already been shown or dismissed this room load.</summary>
@@ -74,6 +94,7 @@ public sealed class TutorialPromptZone : TutorialZone
     {
         Fired = true;
         awaitingAction = false;
+        awaitingReturn = false;
         if (delayed != null) StopCoroutine(delayed);
         delayed = null;
         TutorialPrompts.Dismiss(this);
@@ -98,6 +119,7 @@ public sealed class TutorialPromptZone : TutorialZone
     {
         TutorialPrompts.Show(this, text, duration, Complete);
         awaitingAction = !string.IsNullOrEmpty(completeAction);
+        awaitingReturn = completeOnReturn;
         pressedSince = -1f;
     }
 
@@ -120,6 +142,7 @@ public sealed class TutorialPromptZone : TutorialZone
     private void Complete()
     {
         awaitingAction = false;
+        awaitingReturn = false;
         foreach (var next in thenShow)
             if (next != null && next != this) next.Show();
     }
@@ -146,6 +169,7 @@ public sealed class TutorialPromptZone : TutorialZone
         string timing = delay > 0f ? $"after {delay:0.#}s, " : string.Empty;
         timing += duration > 0 ? $"{duration:0.#}s" : "until dismissed";
         if (!string.IsNullOrEmpty(completeAction)) timing += $", or {completeAction}";
+        if (completeOnReturn) timing += ", or on return";
         var style = new GUIStyle(UnityEditor.EditorStyles.miniLabel) { normal = { textColor = GizmoColor }, wordWrap = true, fixedWidth = 220 };
         string trigger = showOnEnter ? PlaneTag : showOnBanish || showAfterDeath ? "" : "(chained) ";
         if (showOnBanish) trigger += "on banish, ";

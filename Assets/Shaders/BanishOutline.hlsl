@@ -6,7 +6,6 @@
 // _OutlineColor per renderer from a MaterialPropertyBlock; at 0 (the default) this is a no-op.
 float4 _MainTex_TexelSize;
 
-#define BANISH_OUTLINE_PULSE_SPEED 8.0
 // How far past the solid rim the soft inner glow reaches, as a multiple of _OutlineWidth.
 #define BANISH_OUTLINE_GLOW_REACH 3.0
 #define BANISH_OUTLINE_GLOW_STRENGTH 0.55
@@ -53,17 +52,14 @@ half BanishOutlineMask(float2 uv, half width)
     return 0;
 }
 
-// Unlit on purpose so the glow reads the same regardless of 2D lighting. The pulse brightens toward
-// a hotter yellow rather than white (white washes it out in linear space) and never dims;
-// _Time follows Time.timeScale, so it slows with the aim slow-mo.
+// Unlit on purpose so the glow reads the same regardless of 2D lighting. Solid _OutlineColor with no
+// pulse, so a targeted (red) outline stays red instead of being tinted toward yellow.
 half3 ApplyBanishOutline(half3 color, float2 uv, half amount, half width, half4 outlineColor)
 {
     if (amount < 0.001) return color;
 
     half mask = BanishOutlineMask(uv, width) * amount * outlineColor.a;
-    half pulse = 0.5 + 0.5 * sin(_Time.y * BANISH_OUTLINE_PULSE_SPEED);
-    half3 glow = lerp(outlineColor.rgb, half3(1, 1, 0.08), pulse * 0.6);
-    return lerp(color, glow, mask);
+    return lerp(color, outlineColor.rgb, mask);
 }
 
 #endif

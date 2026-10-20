@@ -29,6 +29,10 @@ public class Banishable : MonoBehaviour
     private static readonly HashSet<Banishable> active = new HashSet<Banishable>();
     private static bool aimGlowOn;
     private static Color aimGlowColor = new Color(1f, 0.84f, 0f, 1f);
+    private static Color targetedGlowColor = Color.red;
+
+    // True while this member overlaps the reticule; swaps its outline to targetedGlowColor.
+    private bool targeted;
 
     public Plane CurrentPlane => currentPlane;
 
@@ -50,6 +54,7 @@ public class Banishable : MonoBehaviour
     private void OnDisable()
     {
         active.Remove(this);
+        targeted = false;
         if (aimGlowOn) ApplyGlow(false);
     }
 
@@ -70,14 +75,24 @@ public class Banishable : MonoBehaviour
     }
 
     // Called by BanishReticule as it shows/hides.
-    public static void SetAimGlow(bool on, Color color)
+    public static void SetAimGlow(bool on, Color color, Color targetedColor)
     {
         aimGlowOn = on;
         aimGlowColor = color;
+        targetedGlowColor = targetedColor;
         foreach (var member in active)
         {
             if (member != null) member.ApplyGlow(on);
         }
+    }
+
+    // Called by BanishReticule as this member enters/leaves it.
+    public void SetTargeted(bool isTargeted)
+    {
+        if (targeted == isTargeted) return;
+
+        targeted = isTargeted;
+        if (aimGlowOn) ApplyGlow(true);
     }
 
     public void TogglePlane()
@@ -118,7 +133,7 @@ public class Banishable : MonoBehaviour
         targetRenderer.GetPropertyBlock(mpb);
         bool glow = on && glowWhenAiming && currentPlane == Plane.A;
         mpb.SetFloat(OutlineAmountId, glow ? 1f : 0f);
-        mpb.SetColor(OutlineColorId, aimGlowColor);
+        mpb.SetColor(OutlineColorId, targeted ? targetedGlowColor : aimGlowColor);
         targetRenderer.SetPropertyBlock(mpb);
     }
 }

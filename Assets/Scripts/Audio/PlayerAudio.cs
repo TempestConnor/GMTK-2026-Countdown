@@ -10,6 +10,8 @@ public class PlayerAudio : MonoBehaviour
     [SerializeField] private AudioClip banishArmClip;
     [SerializeField] private AudioClip banishFireClip;
     [SerializeField] private AudioClip banishReturnClip;
+    [Tooltip("Played when the player tries to aim while a volley is still out.")]
+    [SerializeField] private AudioClip banishDeniedClip;
 
     [Header("Grab")]
     [SerializeField] private AudioClip grabClip;
@@ -38,6 +40,11 @@ public class PlayerAudio : MonoBehaviour
     public void PlayBanishReturn()
     {
         Play(banishReturnClip);
+    }
+
+    public void PlayBanishDenied()
+    {
+        Play(banishDeniedClip);
     }
 
     public void PlayGrab()

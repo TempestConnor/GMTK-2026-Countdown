@@ -16,6 +16,8 @@ using UnityEngine.SceneManagement;
 /// The prefab also holds the first-death prompt, shown when the room reloads after the
 /// player's first death in any room. It is recorded in the saved player profile, so it shows
 /// once per profile (until progress is reset), not once per room or play session.
+///
+/// Each prompt is also added to the <see cref="TutorialLog"/> on the same prefab as it fades in.
 /// </summary>
 [DisallowMultipleComponent]
 public sealed class TutorialPrompts : MonoBehaviour
@@ -121,11 +123,14 @@ public sealed class TutorialPrompts : MonoBehaviour
     // sceneLoaded runs before the room's Start methods, so this queues ahead of its After Death prompts.
     private static void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        // Never use a display left over from the room being unloaded.
+        if (instance != null && instance.gameObject.scene != scene) instance = null;
+        // Rooms without prompts still show the log carried over from earlier rooms.
+        if (TutorialLog.HasEntries) GetOrCreate();
+
         if (!RoomTravel.ArrivedByRespawn || GameProgress.Profile.HasSeenTutorial(FirstDeathId)) return;
         // Stays marked in memory even if the save fails, so it still shows only once this session.
         GameProgress.MarkTutorialSeen(FirstDeathId);
-        // Never queue on a display left over from the room being unloaded.
-        if (instance != null && instance.gameObject.scene != scene) instance = null;
         var display = GetOrCreate();
         if (display != null && !string.IsNullOrEmpty(display.firstDeathText))
             display.Enqueue(display, display.firstDeathText, display.firstDeathDuration, null);
@@ -181,6 +186,7 @@ public sealed class TutorialPrompts : MonoBehaviour
                 queue.RemoveAt(0);
                 dismissRequested = false;
                 SetText(current.markup);
+                TutorialLog.Add(current.markup);
                 state = State.FadingIn;
                 break;
 
@@ -224,7 +230,8 @@ public sealed class TutorialPrompts : MonoBehaviour
         text.ForceMeshUpdate(); // Raises TEXT_CHANGED_EVENT, which caches the resting vertices.
     }
 
-    private string ActionLabel(string token)
+    /// <summary>Label of an [@Action] or [@Action/part] token's keyboard/mouse binding.</summary>
+    internal string ActionLabel(string token)
     {
         int slash = token.IndexOf('/');
         string actionName = slash >= 0 ? token.Substring(0, slash) : token;

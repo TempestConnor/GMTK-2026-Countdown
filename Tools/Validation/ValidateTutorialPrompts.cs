@@ -21,8 +21,8 @@ public static class ValidateTutorialPrompts
             string actual = TutorialPromptMarkup.ToRichText(input, key, null, label);
             Check(actual == expected, $"Markup '{input}' -> '{actual}', expected '{expected}'");
         }
-        Markup("Hold [RIGHT_CLICK] to Aim, Press [LEFT_CLICK] to Banish",
-            "Hold <k>RIGHT CLICK</k> to Aim, Press <k>LEFT CLICK</k> to Banish");
+        Markup("Hold [RIGHT_CLICK] to Aim, Press [LEFT_CLICK] to Banish, [SPACE_BAR]",
+            $"Hold {TutorialKey.MouseIcon("RIGHT CLICK")} to Aim, Press {TutorialKey.MouseIcon("LEFT CLICK")} to Banish, <k>SPACE BAR</k>");
         Markup("~Boo~ [@Aim] [@Move/left]",
             "<link=\"spooky\">Boo</link> <k>B:Aim</k> <k>B:Move/left</k>");
         Markup("~unclosed", "<link=\"spooky\">unclosed</link>");
@@ -31,8 +31,13 @@ public static class ValidateTutorialPrompts
             "Spooky colour wrap");
 
         var actions = AssetDatabase.LoadAssetAtPath<InputActionAsset>("Assets/Settings/playerActions.inputactions");
-        Check(TutorialKey.BindingLabel(actions.FindAction("Aim"), null) == "RMB", "Aim binding label should be RMB");
-        Check(TutorialKey.BindingLabel(actions.FindAction("Fire"), null) == "LMB", "Fire binding label should be LMB");
+        Check(TutorialKey.BindingLabel(actions.FindAction("Aim"), null) == "<sprite=\"MouseIcons\" name=\"MouseRight\">", "Aim binding label should be the right-mouse icon");
+        Check(TutorialKey.BindingLabel(actions.FindAction("Fire"), null) == "<sprite=\"MouseIcons\" name=\"MouseLeft\">", "Fire binding label should be the left-mouse icon");
+        var mouseIcons = Resources.Load<TMP_SpriteAsset>("Sprite Assets/" + TutorialKey.MouseIconAsset);
+        Check(mouseIcons != null, "Resources/Sprite Assets/MouseIcons.asset missing");
+        if (mouseIcons != null)
+            foreach (var sprite in new[] { "MouseLeft", "MouseRight", "MouseMiddle" })
+                Check(mouseIcons.GetSpriteIndexFromName(sprite) >= 0, "MouseIcons missing sprite " + sprite);
 
         var display = AssetDatabase.LoadAssetAtPath<TutorialPrompts>("Assets/Resources/TutorialPrompts.prefab");
         Check(display != null, "Resources/TutorialPrompts.prefab missing");

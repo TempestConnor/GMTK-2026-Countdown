@@ -259,7 +259,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
       propertyPath: duration
-      value: 5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
       propertyPath: areaSize.x
@@ -270,9 +270,21 @@ PrefabInstance:
       value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
-      propertyPath: thenShow.Array.size
-      value: 0
+      propertyPath: completeAction
+      value: Preview
       objectReference: {fileID: 0}
+    - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: completeHoldTime
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: thenShow.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: 'thenShow.Array.data[0]'
+      value: 
+      objectReference: {fileID: 1941506820}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -349,12 +361,16 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
       propertyPath: text
-      value: "~Banished~ objects gets sent to the ~Shadow Realm~. \nThey return after
-        a few seconds, or after pressing [@Fire]."
+      value: "~Banished~ objects gets sent to the ~Shadow Realm~. \nPress [@Fire]
+        to return ~Banished~ objects."
       objectReference: {fileID: 0}
     - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
       propertyPath: duration
-      value: 7
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: completeOnReturn
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
       propertyPath: areaSize.x
@@ -592,7 +608,8 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
       propertyPath: text
-      value: '[Highlighted] objects can be ~Banished~ by pressing [@Fire].'
+      value: While [@Aim] Aiming, certain [Highlighted] objects can be ~Banished~
+        by pressing [@Fire].
       objectReference: {fileID: 0}
     - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
       propertyPath: duration
@@ -1234,7 +1251,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
       propertyPath: text
-      value: ~BANISH YOURSELF~
+      value: Try ~Banishing Yourself~
       objectReference: {fileID: 0}
     - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
       propertyPath: delay
@@ -1301,11 +1318,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1294764881600683869, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -1.5419879
+      value: 1.2961097
       objectReference: {fileID: 0}
     - target: {fileID: 1294764881600683869, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -2.5600002
+      value: -2.09623
       objectReference: {fileID: 0}
     - target: {fileID: 1294764881600683869, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1341,11 +1358,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2411716107746878547, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.4580121
+      value: 0.7038903
       objectReference: {fileID: 0}
     - target: {fileID: 2411716107746878547, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.5600002
+      value: 0.09623003
       objectReference: {fileID: 0}
     - target: {fileID: 2411716107746878547, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1369,7 +1386,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8569750860043802486, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_Size.x
-      value: 57.535248
+      value: 76.964264
       objectReference: {fileID: 0}
     - target: {fileID: 8569750860043802486, guid: a22569ddccba7914595cd148d171a220, type: 3}
       propertyPath: m_Size.y
@@ -1507,6 +1524,84 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 205d23808c66fd34a9ea9afd12081552, type: 3}
+--- !u!1001 &1941506818
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 606440615}
+    m_Modifications:
+    - target: {fileID: 2983136522927568984, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_Name
+      value: Preview2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -6.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.75
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+      propertyPath: text
+      value: Remember that Previewing the ~Shadow Realm~ isn't the same thing as
+        ~going~ to the ~Shadow Realm~.
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+--- !u!4 &1941506819 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3178189288705174563, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+  m_PrefabInstance: {fileID: 1941506818}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1941506820 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6178533119865514371, guid: 07e40912c919d5344adc7add3d9c6e50, type: 3}
+  m_PrefabInstance: {fileID: 1941506818}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a7283480b8074d4e8f6953924b5c74a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialPromptZone
 --- !u!1 &1985396569
 GameObject:
   m_ObjectHideFlags: 1
@@ -37534,6 +37629,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8355685857365417336, guid: b73122876a1c53940957fa6391b8eadb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 241695180}
+    - targetCorrespondingSourceObject: {fileID: 8355685857365417336, guid: b73122876a1c53940957fa6391b8eadb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1941506819}
     - targetCorrespondingSourceObject: {fileID: 4709975025314060954, guid: b73122876a1c53940957fa6391b8eadb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1924168398}

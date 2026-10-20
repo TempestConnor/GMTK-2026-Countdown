@@ -257,8 +257,10 @@ public sealed class SafeBoundarySystem : MonoBehaviour
     {
         if (planeAMask == -1)
         {
-            planeAMask = (1 << LayerMask.NameToLayer("Ground")) | (1 << LayerMask.NameToLayer("Entities"));
-            planeBMask = (1 << LayerMask.NameToLayer("GroundB")) | (1 << LayerMask.NameToLayer("EntityB"));
+            planeAMask = (1 << LayerMask.NameToLayer("Ground")) | (1 << LayerMask.NameToLayer("Entities")) |
+                (1 << LayerMask.NameToLayer("Player"));
+            planeBMask = (1 << LayerMask.NameToLayer("GroundB")) | (1 << LayerMask.NameToLayer("EntityB")) |
+                (1 << LayerMask.NameToLayer("PlayerB"));
         }
         return ((planeAMask & (1 << a)) != 0 && (planeAMask & (1 << b)) != 0) ||
                ((planeBMask & (1 << a)) != 0 && (planeBMask & (1 << b)) != 0);

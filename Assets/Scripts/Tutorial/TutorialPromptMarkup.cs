@@ -4,7 +4,8 @@ using System.Text;
 /// <summary>
 /// Converts tutorial prompt markup into TextMeshPro rich text:
 /// <list type="bullet">
-/// <item><c>[RIGHT_CLICK]</c> becomes a button prompt labelled "RIGHT CLICK" (underscores become spaces).</item>
+/// <item><c>[SPACE_BAR]</c> becomes a button prompt labelled "SPACE BAR" (underscores become spaces).
+/// Mouse buttons (<c>[LEFT_CLICK]</c>, <c>[RMB]</c>, ...) show a bare mouse icon instead, without the key format.</item>
 /// <item><c>[@Aim]</c> / <c>[@Move/left]</c> shows that action's keyboard/mouse binding from
 /// playerActions.inputactions (optionally a composite part), so it follows binding changes.</item>
 /// <item><c>~text~</c> marks spooky (wiggling) text. An unclosed <c>~</c> runs to the end.</item>
@@ -46,7 +47,9 @@ public static class TutorialPromptMarkup
                 if (end > i + 1)
                 {
                     string token = markup.Substring(i + 1, end - i - 1).Trim();
-                    result.AppendFormat(keyFormat, KeyLabel(token, actionLabel));
+                    string label = KeyLabel(token, actionLabel);
+                    if (TutorialKey.IsIcon(label)) result.Append(label);
+                    else result.AppendFormat(keyFormat, label);
                     i = end;
                     continue;
                 }
@@ -60,7 +63,8 @@ public static class TutorialPromptMarkup
     private static string KeyLabel(string token, Func<string, string> actionLabel)
     {
         if (token.StartsWith("@") && actionLabel != null) return actionLabel(token.Substring(1).Trim());
-        return token.Replace('_', ' ').ToUpperInvariant();
+        string label = token.Replace('_', ' ').ToUpperInvariant();
+        return TutorialKey.MouseIcon(label) ?? label;
     }
 
     private static string OpenSpooky(string colorHex) =>

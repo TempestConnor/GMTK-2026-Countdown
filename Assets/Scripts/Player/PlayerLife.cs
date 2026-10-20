@@ -75,7 +75,6 @@ public class PlayerLife : MonoBehaviour
     private IEnumerator FreezeThenRespawn()
     {
         // Aiming was cancelled in onPlayerDeath, so the reticule's slow-mo no longer owns the time scale.
-        // The banish return timer uses scaled time, so the volley (and plane-B view) holds during the freeze.
         isDeathFrozen = true;
         Time.timeScale = 0f;
         yield return new WaitForSecondsRealtime(deathFreezeDuration);

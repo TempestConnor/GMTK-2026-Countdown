@@ -94,6 +94,7 @@ public partial class playerController2
     private void OnDisable()
     {
         SafePlayerCollision.Unregister(this);
+        SafeBodyCollision.Unregister(GetComponent<Rigidbody2D>());
         ReleaseGrab();
     }
 }

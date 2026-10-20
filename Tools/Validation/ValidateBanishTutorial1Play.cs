@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 // Play-mode check of the Level01_BanishTutorial1 prompts (see SetupBanishTutorial1Prompts).
 // Start Play mode in that room, then run. Set Run below to pick the route (each needs a fresh room load).
 //   Route.Main:  spawn -> Aim prompt; tap Aim (no); hold Aim -> Banish prompt; banish self ->
-//                Return prompt; zone C -> nothing for 30 s, then BANISH YOURSELF for ~5 s.
+//                Return prompt, which stays until the player returns; zone C -> nothing for 30 s, then BANISH YOURSELF for ~5 s.
 //   Route.ZoneB: hold Aim -> Banish prompt; zone B dismisses it and shows nothing else.
 //   Route.Death: no death prompt on a fresh load; after dying, it shows first, then Aim again.
 public static class ValidateBanishTutorial1Play
@@ -144,7 +144,12 @@ public static class ValidateBanishTutorial1Play
             await BanishSelf(player);
             Expect("The banish succeeded (player on plane B)", player.GetComponent<Banishable>().CurrentPlane == Banishable.Plane.B);
             await Until("A successful banish swaps the Banish prompt for the Return prompt", () => Current == "Prompt_Return");
-            await Until("Return prompt leaves after its duration", () => Current == "(none)", 9f);
+            await Task.Delay(8000);
+            Expect("Return prompt stays until the player returns", Current == "Prompt_Return");
+            for (int i = 0; i < 5; i++) { SetMouse(false, true, Mouse.current.position.ReadValue()); await Task.Delay(20); }
+            SetMouse(false, false, Mouse.current.position.ReadValue());
+            Expect("The return succeeded (player on plane A)", player.GetComponent<Banishable>().CurrentPlane == Banishable.Plane.A);
+            await Until("Returning dismisses the Return prompt", () => Current == "(none)", 2f);
 
             await Teleport(player, new Vector2(8.6f, -1.9f));
             float enteredC = Time.realtimeSinceStartup;

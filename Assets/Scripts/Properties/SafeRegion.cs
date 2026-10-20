@@ -4,8 +4,10 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 /// <summary>Authored hollow, nonlethal geometry. The original collider remains physical support for
-/// non-players outside it; players, and boxes inside it (SafeBodyCollision), collide with baked edge
-/// sections on a child body instead, which SafeBoundarySystem splits where regions touch.</summary>
+/// bodies outside it; bodies inside it (SafeBodyCollision) collide with baked edge sections on a child
+/// body instead, which SafeBoundarySystem splits where regions touch. Players never touch a fixed
+/// (terrain) region's support and always collide with its edges; a movable SafeBox treats players like
+/// any other body, so it can rest on an outside player's head.</summary>
 [DisallowMultipleComponent]
 [DefaultExecutionOrder(50)]
 public sealed class SafeRegion : MonoBehaviour
@@ -49,18 +51,35 @@ public sealed class SafeRegion : MonoBehaviour
         foreach (var edge in bakedEdges) if (edge != null) edge.enabled = false;
     }
 
+    // Farther than any single step of motion: the support was moved directly, so jump the edges too.
+    private const float TeleportDistance = 2f;
+
     private void FixedUpdate() => SyncBoundaryBody();
     internal void SyncBoundaryBody()
     {
         if (!movable || boundaryBody == null || support == null) return;
         // Edges live on their own kinematic child body, not the dynamic support body, so replacing an
         // edge section never touches the support's contacts or mass. Track the support every step.
-        boundaryBody.position = transform.position;
-        boundaryBody.rotation = transform.eulerAngles.z;
+        // Trail it rather than extrapolating its velocity: an extrapolated step carries the edges past a
+        // landing the support stops at, and the kinematic edges push whatever they hold into the ground.
         var body = support.attachedRigidbody;
-        boundaryBody.linearVelocity = body != null ? body.linearVelocity : Vector2.zero;
+        Vector2 position = body != null ? body.position : (Vector2)transform.position;
+        float rotation = body != null ? body.rotation : transform.eulerAngles.z;
+        bool available = Available;
+        boundaryBody.linearVelocity = Vector2.zero;
         boundaryBody.angularVelocity = 0;
-        boundaryBody.simulated = Available;
+        if (!available || !boundaryBody.simulated ||
+            (position - boundaryBody.position).sqrMagnitude > TeleportDistance * TeleportDistance)
+        {
+            boundaryBody.position = position;
+            boundaryBody.rotation = rotation;
+        }
+        else
+        {
+            boundaryBody.MovePosition(position);
+            boundaryBody.MoveRotation(rotation);
+        }
+        boundaryBody.simulated = available;
     }
 
     public bool Contains(Vector2 worldPoint)
@@ -133,8 +152,10 @@ public sealed class SafeRegion : MonoBehaviour
             boundaryBody = null;
             bakedEdges.Clear();
         }
+        // Only fixed supports exclude players; SafeBodyCollision filters movable supports per player.
+        int playerExclusion = moves ? 0 : PlayerMask;
         bool same = support == physicalSupport && movable == moves && boundaries.Length == data.Length &&
-            bakedEdges.Count == data.Length && boundaryBody != null && (physicalSupport.excludeLayers.value & PlayerMask) == PlayerMask &&
+            bakedEdges.Count == data.Length && boundaryBody != null && (physicalSupport.excludeLayers.value & PlayerMask) == playerExclusion &&
             boundaryBody.transform.position == transform.position && boundaryBody.transform.rotation == transform.rotation;
         for (int i = 0; same && i < data.Length; i++)
             same = boundaries[i].start == data[i].start && boundaries[i].end == data[i].end &&
@@ -162,7 +183,7 @@ public sealed class SafeRegion : MonoBehaviour
         var target = transform.lossyScale;
         boundaryBody.transform.localScale = new Vector3(target.x / lossy.x, target.y / lossy.y, 1);
         boundaries = data;
-        support.excludeLayers |= PlayerMask;
+        support.excludeLayers = (support.excludeLayers & ~PlayerMask) | playerExclusion;
         foreach (var line in boundaries)
         {
             var edge = CreateEdge();

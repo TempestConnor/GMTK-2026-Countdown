@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -25,7 +24,6 @@ public partial class playerController2
         public void Cancel()
         {
             player.ReturnBanished();
-            player.banishElapsed = 0;
             player.snapPoseTimer = 0;
         }
     }
@@ -34,21 +32,18 @@ public partial class playerController2
     {
         public bool active;
         public bool playerBanished;
-        public float remaining;
     }
 
     public BanishState CaptureBanishState() => new BanishState
     {
         active = isBanished,
-        playerBanished = isBanished && banishedMembers.Contains(planeMember),
-        remaining = banishStats == null ? 0 : Mathf.Max(0, banishStats.returnDelay - banishElapsed)
+        playerBanished = isBanished && banishedMembers.Contains(planeMember)
     };
 
     public void RestoreBanishState(BanishState state)
     {
-        if (!state.active || banishStats == null) return;
+        if (!state.active) return;
         isBanished = true;
-        banishElapsed = Mathf.Max(0, banishStats.returnDelay - state.remaining);
         if (state.playerBanished)
         {
             banishedMembers.Add(planeMember);
@@ -56,8 +51,7 @@ public partial class playerController2
             touchingDirection.SetActivePlane(Banishable.Plane.B);
             UpdateCameraVisibility(Banishable.Plane.B);
         }
-        if (countdownIndicator != null) countdownIndicator.Show();
-        returnCoroutine = StartCoroutine(ReturnAfterDelay(state.remaining));
+        ShowCountdownIndicator();
     }
     [SerializeField] private float swapTargetRadius = 2f;
 
@@ -79,18 +73,19 @@ public partial class playerController2
     private float armElapsed;
     private bool isArmed => banishStats != null && armElapsed >= banishStats.armTime;
 
-    // True while a volley is out on plane B awaiting its return timer or an early recall.
+    // True while a volley is out on plane B, until the player recalls it with left-click.
     private bool isBanished;
 
     /// <summary>Raised after a banish catches at least one member (the player included).</summary>
     public static event System.Action<playerController2> BanishFired;
-    private float banishElapsed;
+    /// <summary>Raised after an active banish is returned to plane A (recalled or cancelled).</summary>
+    public static event System.Action<playerController2> BanishReturned;
     private readonly List<Banishable> banishedMembers = new List<Banishable>();
-    private Coroutine returnCoroutine;
 
     private void OnEnable()
     {
         SafePlayerCollision.Register(this);
+        SafeBodyCollision.Register(GetComponent<Rigidbody2D>());
         UpdateCameraVisibility(planeMember.CurrentPlane);
     }
 
@@ -120,7 +115,8 @@ public partial class playerController2
             UpdateReticule();
         }
 
-        if (isBanished)
+        // Also runs during the indicator's post-return spin-out, so it keeps following the cursor.
+        if (countdownIndicator != null && countdownIndicator.gameObject.activeSelf)
         {
             UpdateCountdownIndicator();
         }
@@ -129,32 +125,41 @@ public partial class playerController2
         UpdateAnimation();
     }
 
-    private void UpdateCountdownIndicator()
+    // No return timer: the locked reticule at the cursor marks that a volley is out until recalled.
+    private void ShowCountdownIndicator()
     {
-        if (banishStats == null) return;
-
-        banishElapsed = Mathf.Min(banishElapsed + Time.deltaTime, banishStats.returnDelay);
         if (countdownIndicator == null) return;
         countdownIndicator.transform.position = GetPointerWorldPosition();
+        countdownIndicator.Show();
+    }
 
-        float remainingFraction = banishStats.returnDelay > 0f
-            ? 1f - banishElapsed / banishStats.returnDelay
-            : 0f;
-        countdownIndicator.SetProgress(remainingFraction);
+    private void UpdateCountdownIndicator()
+    {
+        if (countdownIndicator == null) return;
+        countdownIndicator.transform.position = GetPointerWorldPosition();
     }
 
 
     // Aim (right-click): hold to arm/show the targeting circle, release to disarm/hide it.
+    // While a volley is out, pressing it only plays the denied feedback.
     public void onAim(InputAction.CallbackContext context)
     {
         if(!CanPlay) return;
 
-        if (context.started && !isBanished)
+        if (context.started && !isBanished && !ClickedHud(context))
         {
             if (playerAudio != null) playerAudio.PlayBanishArm();
+            // Cut any post-return spin-out short so it doesn't overlap the reticule.
+            if (countdownIndicator != null) countdownIndicator.Hide();
             isTargeting = true;
             armElapsed = 0f;
             if (reticule != null) reticule.Show();
+        }
+        else if (context.started && isBanished && !ClickedHud(context))
+        {
+            // Aiming is locked until the volley is recalled -- say so instead of ignoring the click.
+            if (countdownIndicator != null) countdownIndicator.Deny();
+            if (playerAudio != null) playerAudio.PlayBanishDenied();
         }
         else if (context.canceled)
         {
@@ -163,12 +168,12 @@ public partial class playerController2
         }
     }
 
-    // Fire (left-click): fires the armed circle, or -- if a volley is already out -- recalls it early.
+    // Fire (left-click): fires the armed circle, or -- if a volley is already out -- recalls it.
     public void onBanishFire(InputAction.CallbackContext context)
     {
         if(!CanPlay) return;
 
-        if (!context.started) return;
+        if (!context.started || ClickedHud(context)) return;
 
         if (isBanished)
         {
@@ -179,6 +184,10 @@ public partial class playerController2
             FireBanish();
         }
     }
+
+    // Mouse clicks on HUD such as the tutorial log must not aim, fire or recall.
+    private static bool ClickedHud(InputAction.CallbackContext context) =>
+        context.control?.device is Mouse mouse && TutorialLog.IsPointerOver(mouse.position.ReadValue());
 
     private void UpdateReticule()
     {
@@ -232,10 +241,8 @@ public partial class playerController2
         if (playerAudio != null) playerAudio.PlayBanishFire();
         PlayBanishFlash();
         isBanished = true;
-        banishElapsed = 0f;
         snapPoseTimer = snapPoseDuration;
-        if (countdownIndicator != null) countdownIndicator.Show();
-        returnCoroutine = StartCoroutine(ReturnAfterDelay(banishStats.returnDelay));
+        ShowCountdownIndicator();
         CheckDamageablePenetration();
         BanishFired?.Invoke(this);
     }
@@ -255,28 +262,11 @@ public partial class playerController2
         BanishFlash.Play(position, banishFlash);
     }
 
-    private IEnumerator ReturnAfterDelay(float remaining)
-    {
-        while (remaining > 0)
-        {
-            yield return null;
-            if (!RoomTravel.IsLoading) remaining -= Time.deltaTime;
-        }
-        returnCoroutine = null;
-        ReturnBanished();
-    }
-
     // Forces every banished member (including the player, if they were caught in the volley)
-    // back to plane A -- used for both the automatic timer and an early left-click recall.
+    // back to plane A -- used for the left-click recall and when the banish action is cancelled.
     private void ReturnBanished()
     {
         if (!isBanished) return;
-
-        if (returnCoroutine != null)
-        {
-            StopCoroutine(returnCoroutine);
-            returnCoroutine = null;
-        }
 
         foreach (var member in banishedMembers)
         {
@@ -293,9 +283,10 @@ public partial class playerController2
 
         banishedMembers.Clear();
         isBanished = false;
-        if (countdownIndicator != null) countdownIndicator.Hide();
+        if (countdownIndicator != null) countdownIndicator.PlayReturn();
         if (playerAudio != null) playerAudio.PlayBanishReturn();
         CheckDamageablePenetration();
+        BanishReturned?.Invoke(this);
     }
 
     private void CheckDamageablePenetration()

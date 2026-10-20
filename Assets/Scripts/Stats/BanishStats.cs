@@ -8,7 +8,4 @@ public class BanishStats : ScriptableObject
 
     [Tooltip("Radius (in world units) the targeting circle grows to once fully armed.")]
     public float targetRadius = 3f;
-
-    [Tooltip("How long (in seconds) banished objects stay on plane B before automatically returning to plane A.")]
-    public float returnDelay = 3f;
 }

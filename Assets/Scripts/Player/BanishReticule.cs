@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Trigger volume for playerController2's banish ability -- tracks whichever Banishables
+// Targeting circle for playerController2's banish ability -- tracks whichever Banishables
 // are currently overlapping it, so firing just snapshots whatever's touching at that instant.
+// Overlaps are queried every frame instead of using trigger callbacks: the circle is teleported
+// and resized each frame, and missed/unbalanced enter-exit events made the targeted glow flicker.
 [RequireComponent(typeof(CircleCollider2D))]
 public class BanishReticule : MonoBehaviour
 {
@@ -13,6 +15,8 @@ public class BanishReticule : MonoBehaviour
     [SerializeField] private int outlineSegments = 48;
     [Tooltip("Outline color every Banishable glows with while the reticule is up.")]
     [SerializeField] private Color banishableGlowColor = new Color(1f, 0.84f, 0f, 1f);
+    [Tooltip("Outline color for Banishables currently inside the reticule.")]
+    [SerializeField] private Color targetedGlowColor = Color.red;
 
     [Header("Crosshair ticks (fractions of the radius)")]
     [SerializeField] private float tickInner = 0.45f;
@@ -23,7 +27,9 @@ public class BanishReticule : MonoBehaviour
     private CircleCollider2D circleCollider;
     private LineRenderer[] ticks;
     private bool armed;
-    private readonly HashSet<Banishable> touching = new HashSet<Banishable>();
+    private HashSet<Banishable> touching = new HashSet<Banishable>();
+    private HashSet<Banishable> overlapping = new HashSet<Banishable>();
+    private readonly List<Collider2D> hits = new List<Collider2D>();
     private float previousTimeScale;
     private float previousFixedDeltaTime;
 
@@ -33,15 +39,15 @@ public class BanishReticule : MonoBehaviour
         previousFixedDeltaTime = Time.fixedDeltaTime;
         Time.timeScale = previousTimeScale * 0.25f;
         Time.fixedDeltaTime = previousFixedDeltaTime * 0.25f;
-        Banishable.SetAimGlow(true, banishableGlowColor);
+        Banishable.SetAimGlow(true, banishableGlowColor, targetedGlowColor);
     }
 
     private void OnDisable()
     {
         Time.timeScale = previousTimeScale;
         Time.fixedDeltaTime = previousFixedDeltaTime;
-        Banishable.SetAimGlow(false, banishableGlowColor);
-        touching.Clear();
+        ClearTouching();
+        Banishable.SetAimGlow(false, banishableGlowColor, targetedGlowColor);
         armed = false;
         ApplyColor(armingColor);
     }
@@ -110,7 +116,7 @@ public class BanishReticule : MonoBehaviour
 
     public void Hide()
     {
-        touching.Clear();
+        ClearTouching();
         gameObject.SetActive(false);
     }
 
@@ -158,21 +164,62 @@ public class BanishReticule : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private void ClearTouching()
     {
-        var member = other.GetComponentInParent<Banishable>();
-        if (member != null)
+        foreach (var member in touching)
         {
-            touching.Add(member);
+            if (member != null) member.SetTargeted(false);
         }
+        touching.Clear();
     }
 
-    private void OnTriggerExit2D(Collider2D other)
+    // LateUpdate so the query sees this frame's position/radius from playerController2.Update.
+    private void LateUpdate()
     {
-        var member = other.GetComponentInParent<Banishable>();
-        if (member != null)
+        RefreshTouching();
+    }
+
+    private void RefreshTouching()
+    {
+        overlapping.Clear();
+
+        Vector3 scale = transform.lossyScale;
+        float radius = circleCollider.radius * Mathf.Max(Mathf.Abs(scale.x), Mathf.Abs(scale.y));
+        if (radius > 0f)
         {
-            touching.Remove(member);
+            // Same layers the trigger would have contacted, per the collision matrix.
+            var filter = new ContactFilter2D { useTriggers = true };
+            filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
+            Physics2D.OverlapCircle(transform.TransformPoint(circleCollider.offset), radius, filter, hits);
+
+            foreach (var hit in hits)
+            {
+                if (hit == circleCollider || Excludes(hit)) continue;
+                var member = hit.GetComponentInParent<Banishable>();
+                if (member != null) overlapping.Add(member);
+            }
         }
+
+        foreach (var member in touching)
+        {
+            if (member != null && !overlapping.Contains(member)) member.SetTargeted(false);
+        }
+        foreach (var member in overlapping)
+        {
+            member.SetTargeted(true);
+        }
+
+        (touching, overlapping) = (overlapping, touching);
+    }
+
+    // Per-collider/body layer overrides the collision matrix doesn't cover (e.g. SafeBox's
+    // player-boundary edges only contact the player), mirroring what a trigger contact would allow.
+    private bool Excludes(Collider2D hit)
+    {
+        int bit = 1 << gameObject.layer;
+        if ((hit.excludeLayers.value & bit) != 0 && (hit.includeLayers.value & bit) == 0) return true;
+
+        var body = hit.attachedRigidbody;
+        return body != null && (body.excludeLayers.value & bit) != 0 && (body.includeLayers.value & bit) == 0;
     }
 }

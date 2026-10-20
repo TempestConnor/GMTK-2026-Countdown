@@ -59,7 +59,7 @@ public sealed class TutorialKey : MonoBehaviour
         label.transform.localPosition = size * 0.5f;
         label.transform.localScale = new Vector3(labelScale, labelScale, 1f);
 
-        outline.enabled = showKeycap;
+        outline.enabled = showKeycap && !IsIcon(text); // icons are drawn bare, without a keycap
         var points = RoundedRect(new Rect(Vector2.one * Inset, size - 2f * Inset * Vector2.one), CornerRadius);
         outline.useWorldSpace = false;
         outline.loop = true;
@@ -76,7 +76,10 @@ public sealed class TutorialKey : MonoBehaviour
         return BindingLabel(action != null ? action.action : null, compositePart);
     }
 
-    /// <summary>Short keyboard/mouse label for an action's binding, e.g. "SPACE" or "RMB"; "?" if none.</summary>
+    /// <summary>
+    /// Short keyboard/mouse label for an action's binding, e.g. "SPACE"; "?" if none. Mouse buttons
+    /// become a TMP sprite tag for a mouse icon (see <see cref="MouseIcon"/>).
+    /// </summary>
     public static string BindingLabel(InputAction inputAction, string compositePart)
     {
         if (inputAction == null) return "?";
@@ -94,16 +97,31 @@ public sealed class TutorialKey : MonoBehaviour
         return "?";
     }
 
-    private static string Shorten(string name)
+    private static string Shorten(string name) => MouseIcon(name) ?? name.ToUpperInvariant();
+
+    /// <summary>TMP sprite asset holding the mouse icons, loaded by name from Resources/Sprite Assets/.</summary>
+    public const string MouseIconAsset = "MouseIcons";
+
+    /// <summary>
+    /// TMP sprite tag showing a mouse with the named button highlighted, or null if
+    /// <paramref name="button"/> is not a mouse button. Accepts binding names ("Left Button") and
+    /// prompt labels ("LEFT CLICK", "LMB"), ignoring case.
+    /// </summary>
+    public static string MouseIcon(string button)
     {
-        switch (name)
+        switch (button.Trim().ToUpperInvariant())
         {
-            case "Left Button": return "LMB";
-            case "Right Button": return "RMB";
-            case "Middle Button": return "MMB";
-            default: return name.ToUpperInvariant();
+            case "LEFT BUTTON": case "LEFT CLICK": case "LMB": return SpriteTag("MouseLeft");
+            case "RIGHT BUTTON": case "RIGHT CLICK": case "RMB": return SpriteTag("MouseRight");
+            case "MIDDLE BUTTON": case "MIDDLE CLICK": case "MMB": return SpriteTag("MouseMiddle");
+            default: return null;
         }
     }
+
+    /// <summary>True when <paramref name="label"/> is an icon (a TMP sprite tag) rather than key text.</summary>
+    public static bool IsIcon(string label) => label != null && label.StartsWith("<sprite");
+
+    private static string SpriteTag(string sprite) => $"<sprite=\"{MouseIconAsset}\" name=\"{sprite}\">";
 
     private static Vector3[] RoundedRect(Rect rect, float radius)
     {
