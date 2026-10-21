@@ -153,6 +153,8 @@ public partial class playerController2 : MonoBehaviour
     // Physics update should occur on Fixed update instead
     private void FixedUpdate()
     {
+        // Boxes still falling from a banish/return don't care whether the player is alive.
+        UpdateSettlingBoxes();
         if (!playerLife.isAlive || RoomTravel.IsLoading) return;
 
         // Release invalid/plane-separated grips before refreshing wall contacts.

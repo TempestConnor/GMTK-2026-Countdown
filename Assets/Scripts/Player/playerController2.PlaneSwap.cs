@@ -281,20 +281,67 @@ public partial class playerController2
             }
         }
 
-        banishedMembers.Clear();
         isBanished = false;
         if (countdownIndicator != null) countdownIndicator.PlayReturn();
         if (playerAudio != null) playerAudio.PlayBanishReturn();
         CheckDamageablePenetration();
+        banishedMembers.Clear();
         BanishReturned?.Invoke(this);
     }
 
     private void CheckDamageablePenetration()
     {
         SafeBoundarySystem.RefreshNow();
+        // Swapped boxes are watched until they land, in case they snag on a corner of the new plane.
+        foreach (var member in banishedMembers)
+        {
+            if (member == null || member == planeMember ||
+                !member.TryGetComponent(out Rigidbody2D body) || body.bodyType != RigidbodyType2D.Dynamic) continue;
+            settlingBoxes.RemoveAll(s => s.body == body);
+            settlingBoxes.Add((body, Time.fixedTime + SettleTimeout));
+        }
         // Wait until the entire volley is on its final plane before testing overlap.
         foreach (var check in FindObjectsByType<DamageablePenetrationCheck>(FindObjectsSortMode.None))
             if (check != null) check.CheckNow();
+    }
+
+    // A box keeps its X across a plane swap (Pushable freezes it), so it can come back flush with a
+    // wall that only exists on this plane. Falling, its corner can catch the wall's corner: the slanted
+    // contact holds it up and the frozen X stops it sliding off, so it hangs in the air. Flush is often
+    // intended (the level lines boxes up with safe regions that way), so only an actual snag is released.
+    private const float SnagRelease = .05f; // More than the solver's contact skin, under a pixel.
+    private const float SettleTimeout = 5f;
+    private readonly List<(Rigidbody2D body, float until)> settlingBoxes = new List<(Rigidbody2D, float)>();
+    private static readonly List<ContactPoint2D> settleContacts = new List<ContactPoint2D>();
+
+    private void UpdateSettlingBoxes()
+    {
+        for (int i = settlingBoxes.Count - 1; i >= 0; i--)
+        {
+            var (body, until) = settlingBoxes[i];
+            if (body == null || !body.simulated || Time.fixedTime > until)
+            {
+                settlingBoxes.RemoveAt(i);
+                continue;
+            }
+            // Contacts are from the last step; normals point away from what the box touches.
+            float up = body.gravityScale < 0f ? -1f : 1f; // A reversal area may flip "up".
+            body.GetContacts(settleContacts);
+            bool supported = false;
+            float snag = 0f;
+            foreach (var contact in settleContacts)
+            {
+                float lift = contact.normal.y * up;
+                if (lift > .9f) { supported = true; break; }
+                if (lift > .1f && Mathf.Abs(contact.normal.x) > .1f) snag = contact.normal.x;
+            }
+            if (supported)
+            {
+                settlingBoxes.RemoveAt(i);
+                continue;
+            }
+            if (snag != 0f) body.position += new Vector2(Mathf.Sign(snag) * SnagRelease, 0f);
+        }
     }
 }
 
